@@ -13,23 +13,15 @@ namespace gdwg {
       class const_iterator {};
 
       // Vector Constructor
-      Graph<N, E>(typename std::vector<N>::const_iterator c1, typename std::vector<N>::const_iterator c2) {
-        for (auto it = c1; it != c2; it++) {
-          // Check for duplicates in initaliser vector
-          bool alreadyInList = false;
-          for (const auto& item : nodeList_) {
-            if (*item.getValue() == *it) {
-              alreadyInList = true;
-              break;
-            }
-          }
-          if (!alreadyInList) {
-            nodeList_.push(std::shared_ptr<Node>(new Node(*it)));
-          }
-        }
-      };
+      Graph<N, E>(typename std::vector<N>::const_iterator c1, typename std::vector<N>::const_iterator c2);
+      Graph<N, E>(typename std::vector<std::tuple<N, N, E>>::const_iterator, typename std::vector<std::tuple<N, N, E>>::const_iterator);
 
-    private:
+      bool InsertEdge(const N&, const N&, const E&);
+      bool InsertNode(const N&);
+      bool DeleteNode(const N&);
+
+
+   private:
       class Node {
         N value_;
         std::vector<Node*> parents_;
@@ -42,17 +34,20 @@ namespace gdwg {
       };
       class Edge {
        private:
-        Node* start_;
-        Node* end_;
+        Node* src_;
+        Node* dst_;
         E weight_;
        public:
-        Edge(N start, N end, E weight) {
-          start_(std::weak_ptr<Node>(new Node(start))), end_(std::weak_ptr<Node>(new Node(end))), weight_(weight);
+        Edge(N src, N dst, E weight) {
+          src_(std::weak_ptr<Node>(new Node(src))), dst_(std::weak_ptr<Node>(new Node(dst))), weight_(weight);
         }
+        Node* getSrc() {return src_;}
+        Node* getDst() {return dst_;}
+        E getWeight() {return weight_;}
       };
       std::vector<std::shared_ptr<Node>> nodeList_;
       std::vector<std::shared_ptr<Edge>> edgeList_;
-    };
+  };
 
 }  // namespace gdwg
 

@@ -48,7 +48,7 @@ namespace gdwg {
                 return !(lhs == rhs);
             }
 
-        private:
+          private:
             std::vector<std::string>::iterator outer_;
             const std::vector<std::string>::iterator sentinel_;
             std::string::iterator inner_;
@@ -64,34 +64,32 @@ namespace gdwg {
         bool InsertEdge(const N&, const N&, const E&);
         bool InsertNode(const N&);
         bool DeleteNode(const N&);
-
+        bool Replace(const N&, const N&);
+        void MergeReplace(const N& oldData, const N& newData);
 
     private:
         class Node {
-            N value_;
-            std::vector<Node*> parents_;
-            std::vector<Node*> children_;
-
-            Node(N value) : value_(value) {}
-            inline std::vector<Node*> getChildren() {return children_;}
-            inline std::vector<Node*> getParents() {return parents_;}
-            inline N getValue() {return value_;}
-        };
-        class Edge {
         private:
-            Node* src_;
-            Node* dst_;
-            E weight_;
+            N value_;
+            std::vector<std::weak_ptr<Node>> children_;
+            std::vector<std::weak_ptr<Node>> parents_;
+            std::map<std::weak_ptr<Node>, std::vector<E>> edges_;
+
         public:
-            Edge(N src, N dst, E weight) {
-                src_(std::weak_ptr<Node>(new Node(src))), dst_(std::weak_ptr<Node>(new Node(dst))), weight_(weight);
-            }
-            Node* getSrc() {return src_;}
-            Node* getDst() {return dst_;}
-            E getWeight() {return weight_;}
+            Node();
+            Node(N value) : value_(value) {}
+            inline std::vector<std::weak_ptr<Node>> getChildren() {return children_;}
+            inline std::vector<std::weak_ptr<Node>> getParents() {return parents_;}
+            inline std::map<std::weak_ptr<Node>, std::vector<E>> getEdges() {return edges_;}
+            inline N getValue() {return value_;}
+            inline void changeValue(N val) {value_ = val; return;}
+            bool addChild(std::shared_ptr<Node>, const E&);
+            bool addParent(std::shared_ptr<Node>);
         };
+
         std::vector<std::shared_ptr<Node>> nodeList_;
-        std::vector<std::shared_ptr<Edge>> edgeList_;
+        std::map<std::weak_ptr<Node>, std::weak_ptr<Node>> dstList_;
+        std::map<std::tuple<std::weak_ptr<Node>, std::weak_ptr<Node>>, E> weightList_;
     };
 
 }  // namespace gdwg
@@ -99,7 +97,5 @@ namespace gdwg {
 
 #include "assignments/dg/graph.tpp"
 
-//template<typename N, typename E>
-//gdwg::Graph<N, E>(typename std::vector<N>::const_iterator c1, typename std::vector<N>::const_iterator c2) {  }
 
 #endif  // ASSIGNMENTS_DG_GRAPH_H_

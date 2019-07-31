@@ -38,8 +38,7 @@ namespace gdwg {
                 return copy;
             }
 
-            friend bool operator==(const const_iterator& lhs,
-                    const const_iterator rhs) {
+            friend bool operator==(const const_iterator& lhs, const const_iterator rhs) {
 //                return it1.getValue() == rhs.outer_ && (lhs.outer_ == lhs.sentinel_ || lhs.inner_ == rhs.inner_);
             }
 
@@ -57,7 +56,7 @@ namespace gdwg {
 //            iterator(const decltype(outer_)& outer, const decltype(sentinel_)& sentinel, const decltype(inner_)& inner): outer_{outer}, sentinel_{sentinel}, inner_{inner} {}
         };
 
-        // Vector Constructor
+        // Graph Constructors
         Graph<N, E>(typename std::vector<N>::const_iterator c1, typename std::vector<N>::const_iterator c2);
         Graph<N, E>(typename std::vector<std::tuple<N, N, E>>::const_iterator, typename std::vector<std::tuple<N, N, E>>::const_iterator);
 
@@ -66,6 +65,16 @@ namespace gdwg {
         bool DeleteNode(const N&);
         bool Replace(const N&, const N&);
         void MergeReplace(const N& oldData, const N& newData);
+        void Clear();
+        bool IsNode(const N& val);
+        bool IsConnected(const N& src, const N& dst);
+        std::vector<N> GetNodes();
+        std::vector<N> GetConnected(const N& src);
+        std::vector<E> GetWeights(const N& src, const N& dst);
+        const_iterator find(const N&, const N&, const E&);
+        bool erase(const N& src, const N& dst, const E& w);
+        const_iterator erase(const_iterator it);
+
 
     private:
         class Node {
@@ -73,18 +82,21 @@ namespace gdwg {
             N value_;
             std::vector<std::weak_ptr<Node>> children_;
             std::vector<std::weak_ptr<Node>> parents_;
-            std::map<std::weak_ptr<Node>, std::vector<E>> edges_;
+            std::map<N, std::vector<E>> edges_;
 
         public:
             Node();
             Node(N value) : value_(value) {}
             inline std::vector<std::weak_ptr<Node>> getChildren() {return children_;}
             inline std::vector<std::weak_ptr<Node>> getParents() {return parents_;}
-            inline std::map<std::weak_ptr<Node>, std::vector<E>> getEdges() {return edges_;}
+            inline std::map<N, std::vector<E>> getEdges() {return edges_;}
             inline N getValue() {return value_;}
             inline void changeValue(N val) {value_ = val; return;}
-            bool addChild(std::shared_ptr<Node>, const E&);
-            bool addParent(std::shared_ptr<Node>);
+            bool addEdge(const N&, const E&);
+            void addChild(std::weak_ptr<Node>);
+            void removeChild(const N&);
+            void addParent(std::weak_ptr<Node>);
+            void removeParent(const N&);
         };
 
         std::vector<std::shared_ptr<Node>> nodeList_;

@@ -74,7 +74,14 @@ namespace gdwg {
         const_iterator find(const N&, const N&, const E&);
         bool erase(const N& src, const N& dst, const E& w);
         const_iterator erase(const_iterator it);
-
+        const_iterator cbegin();
+        const_iterator cend();
+        const_reverse_iterator crbegin();
+        const_iterator crend();
+        const_iterator begin();
+        const_iterator end();
+        const_reverse_iterator rbegin();
+        const_reverse_iterator rend();
 
     private:
         class Node {

@@ -82,11 +82,8 @@ const_reverse_iterator rend();
 -------
 Friends
 -------
-True if the two graphs contain the same nodes and edges.
 bool operator==
 
-True if the two graphs do not contain the same nodes or edges.
 bool operator!=
 
-Prints out the graph
 std::ostream& operator<<

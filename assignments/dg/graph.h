@@ -129,22 +129,22 @@ namespace gdwg {
 
         ~Graph<N, E>();
 
-        Graph<N, E>& operator=(const gdwg::Graph<N, E>&);
+        Graph<N, E>& operator=(const gdwg::Graph<N, E>& g);
 
-        Graph<N, E>& operator=(gdwg::Graph<N, E>&&);
+        Graph<N, E>& operator=(gdwg::Graph<N, E>&& g);
 
-        friend bool operator==(const Graph& g1, const Graph& g2) {
-            // TODO
-            return true;
-        }
-
-        friend bool operator!=(const Graph& g1, const Graph& g2) {
-            return !(g1 == g2);
-        }
-
-        friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
-            // TODO
-        }
+//        friend bool operator==(const Graph& g1, const Graph& g2) {
+//            // TODO
+//            return true;
+//        }
+//
+//        friend bool operator!=(const Graph& g1, const Graph& g2) {
+//            return !(g1 == g2);
+//        }
+//
+//        friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
+//            // TODO
+//        }
 
         bool InsertEdge(const N&, const N&, const E&);
 

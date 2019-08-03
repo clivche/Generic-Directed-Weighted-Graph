@@ -1,0 +1,89 @@
+------------
+Constructors
+------------
+
+Default Constructor 			gdwg::Graph<N, E>
+
+Constructor 					gdwg::Graph<N, E>(
+								  std::vector<N>::const_iterator,
+								  std::vector<N>::const_iterator
+								)
+
+Constructor 					gdwg::Graph<N, E>(
+								  std::vector<std::tuple<N, N, E>>::const_iterator,
+								  std::vector<std::tuple<N, N, E>>::const_iterator
+								)
+
+Constructor 					gdwg::Graph<N, E>(std::initializer_list<N>)
+
+Copy Constructor 				gdwg::Graph<N, E>(gdwg::Graph<N, E>&)
+
+Move Constructor 				gdwg::Graph<N, E>(gdwg::Graph<N, E>&&)
+
+Destructor                      ~gdwg::Graph<N, E>()
+
+
+---------
+Operators
+---------
+Copy assignment 				gdwg::Graph<N, E>& operator=(const gdwg::Graph<N, E>&)
+
+Move Assignment 				gdwg::Graph<N, E>& operator=(gdwg::Graph<N, E>&&)
+
+
+-------
+Methods
+-------
+bool InsertNode(const N& val)
+
+bool InsertEdge(const N& src, const N& dst, const E& w)
+
+bool DeleteNode(const N&)
+
+bool Replace(const N& oldData, const N& newData)
+
+void MergeReplace(const N& oldData, const N& newData)
+
+void Clear()
+
+bool IsNode(const N& val)
+
+bool IsConnected(const N& src, const N& dst)
+
+std::vector<N> GetNodes()
+
+std::vector<N> GetConnected(const N& src)
+
+std::vector<E> GetWeights(const N& src, const N& dst)
+
+const_iterator find(const N&, const N&, const E&)
+
+bool erase(const N& src, const N& dst, const E& w)
+
+const_iterator erase(const_iterator it);
+
+const_iterator cbegin();
+
+const_iterator cend();
+
+const_reverse_iterator crbegin();
+
+const_reverse_iterator crend();
+
+const_iterator begin();
+
+const_iterator end();
+
+const_reverse_iterator rbegin();
+
+const_reverse_iterator rend();
+
+
+-------
+Friends
+-------
+bool operator==
+
+bool operator!=
+
+std::ostream& operator<<

@@ -50,7 +50,7 @@ namespace gdwg {
 
             std::vector<std::shared_ptr<Node>>::iterator node_iter_;
             const std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-            typename std::map<N, std::vector<E>>::iterator edge_iter_;
+            typename std::vector<N>::iterator edge_iter_;
             typename std::vector<E>::iterator weight_iter_;
 
             const_reverse_iterator(const decltype(node_iter_)& node_iter,
@@ -100,7 +100,7 @@ namespace gdwg {
 
             std::vector<std::shared_ptr<Node>>::iterator node_iter_;
             const std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-            typename std::map<N, std::vector<E>>::iterator edge_iter_;
+            typename std::vector<N>::iterator edge_iter_;
             typename std::vector<E>::iterator weight_iter_;
 
             const_iterator(const decltype(node_iter_)& node_iter,
@@ -137,18 +137,97 @@ namespace gdwg {
 
         Graph<N, E>& operator=(gdwg::Graph<N, E>&& g);
 
-//        friend bool operator==(const Graph& g1, const Graph& g2) {
-//            // TODO
-//            return true;
-//        }
-//
-//        friend bool operator!=(const Graph& g1, const Graph& g2) {
-//            return !(g1 == g2);
-//        }
-//
-//        friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
-//            // TODO
-//        }
+        friend bool operator==(const Graph& g1, const Graph& g2) {
+
+            // check nodelist size
+            if (g1.nodeList_.size() != g2.nodeList_.size()) {
+                return false;
+
+            }
+
+            int max = g1.nodeList_.size();
+            for (int counter = 0; counter < max; counter++) {
+                // check node values
+                if (g1.nodeList_[counter]->getValue() != g2
+                .nodeList_[counter]->getValue()) {
+                    return false;
+                }
+            }
+
+
+            for (int counter = 0; counter < max; counter++) {
+                std::map<N, std::vector<E>> e1 = *g1.nodeList_[counter]
+                        .getEdges();
+                std::map<N, std::vector<E>> e2 = *g2.nodeList_[counter]
+                        .getEdges();
+
+                // check size of children vector
+                if (e1.size() != e2.size()) {
+                    return false;
+                }
+
+                // check if child values are all the same
+                for (int cc = 0; cc < e1.size(); cc++) {
+                    std::pair<N, std::vector<E>> child1 = *e1[cc];
+                    std::pair<N, std::vector<E>> child2 = *e2[cc];
+
+                    if (child1.first != child2.first) {
+                        return false;
+                    }
+                }
+
+                // check if edges are all the same weight
+                for (int cc = 0; cc < e1.size(); cc++) {
+                    std::pair<N, std::vector<E>> child1 = *e1[cc];
+                    std::pair<N, std::vector<E>> child2 = *e2[cc];
+
+                    std::vector<E> ce1 = child1.second;
+                    std::vector<E> ce2 = child2.second;
+
+                    if (ce1 != ce2) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        friend bool operator!=(const Graph& g1, const Graph& g2) {
+            return !(g1 == g2);
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
+            const std::string NODE_START = " (";
+            const std::string NODE_END = "\n)\n";
+            const std::string EDGE_SEPARATOR = " | ";
+            const std::string CHILD_START = "\n  ";
+
+            int max = g.nodeList_.size();
+            std::vector<N> output;
+
+            for (int counter = 0; counter < max; counter++) {
+                Node n = *g.nodeList_[counter];
+                os << n.getValue() << NODE_START;
+
+                std::map<N, std::vector<E>> e1 = n.getEdges();
+
+                if (e1.size() != 0) {
+                    for (int i = 0; i < e1.size(); i++) {
+                        std::pair<N, std::vector<E>> child = *e1[i];
+                        typename std::vector<E>::iterator it = child.second
+                                .begin();
+
+                        for (it; it != child.second.end(); ++it) {
+                            os << CHILD_START << child.first << EDGE_SEPARATOR;
+                            os << *it;
+                        }
+                    }
+                }
+
+                os << NODE_END;
+            }
+        }
 
         inline std::vector<std::shared_ptr<Node>> GetNodeList(){return nodeList_;};
 
@@ -239,5 +318,6 @@ namespace gdwg {
     };
 
 }  // namespace gdwg
+
 
 #endif  // ASSIGNMENTS_DG_GRAPH_H_

@@ -1,5 +1,3 @@
-
-
 #include "assignments/dg/graph.h"
 #include <stdexcept>
 
@@ -138,7 +136,10 @@ gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1, typename st
       }
     }
     if (!alreadyInList) {
-      nodeList_.push(std::shared_ptr<Node>(new Node(*it)));
+      nodeList_.insert(std::shared_ptr<Node>(new Node(*it)));
+
+
+        //TODO
     }
   }
 }
@@ -156,7 +157,10 @@ gdwg::Graph<N, E>::Graph(typename std::vector<std::tuple<N, N, E>>::const_iterat
                 }
             }
             if (!alreadyInList) {
-                nodeList_.push(std::shared_ptr<Node>(new Node(*it)));
+                nodeList_.insert(std::shared_ptr<Node>(new Node(*it)));
+
+
+                //TODO
             }
         }
         InsertEdge(it[0], it[1], it[2]);
@@ -398,8 +402,8 @@ std::vector<E> gdwg::Graph<N, E>::GetWeights(const N& src, const N& dst) {
 }
 
 template<typename N, typename E>
-gdwg::Graph::const_iterator gdwg::Graph<N, E>::find(const N&, const N&, const E&) {
-    return gdwg::Graph::const_iterator();
+typename gdwg::Graph<N,E>::const_iterator gdwg::Graph<N, E>::find(const N&, const N&, const E&) {
+    return typename gdwg::Graph<N,E>::const_iterator();
 }
 
 template<typename N, typename E>
@@ -421,8 +425,6 @@ bool gdwg::Graph<N, E>::erase(const N& src, const N& dst, const E& w) {
 }
 
 template<typename N, typename E>
-gdwg::Graph::const_iterator gdwg::Graph<N, E>::erase(gdwg::Graph::const_iterator it) {
-    return gdwg::Graph::const_iterator();
+typename gdwg::Graph<N,E>::const_iterator gdwg::Graph<N, E>::erase(typename gdwg::Graph<N,E>::const_iterator it) {
+    return typename gdwg::Graph<N,E>::const_iterator();
 }
-
-

@@ -1,9 +1,12 @@
 #ifndef ASSIGNMENTS_DG_GRAPH_H_
 #define ASSIGNMENTS_DG_GRAPH_H_
+#endif
 
 #include <vector>
 #include <map>
 #include <memory>
+
+class Node;
 
 namespace gdwg {
 
@@ -11,35 +14,35 @@ namespace gdwg {
     class Graph {
     public:
         class const_iterator {
+        public:
             using iterator_category = std::bidirectional_iterator_tag;
             using value_type = std::tuple<N, N, E>;
             using reference = std::tuple<const N&, const N&, const E&>;
             using pointer = std::tuple<N*, N*, E*>;
             using difference_type = int;
 
+            // This one isn't strictly required, but it's nice to have.
+            pointer operator->() const { return &(operator*()); }
             reference operator*() const;
-            const_iterator& operator++() {
-                // perform operation
-                return *this;
-            }
-            const_iterator operator++(int) {
+            const_iterator& operator++();
+            const const_iterator operator++(int) {
                 auto copy{*this};
                 ++(*this);
                 return copy;
             }
-
-            const_iterator& operator--() {
-                // perform operation
-                return *this;
-            }
-            const_iterator operator--(int) {
+            const_iterator& operator--();
+            const const_iterator operator--(int) {
                 auto copy{*this};
                 --(*this);
                 return copy;
             }
 
-            friend bool operator==(const const_iterator& lhs, const const_iterator rhs) {
-//                return it1.getValue() == rhs.outer_ && (lhs.outer_ == lhs.sentinel_ || lhs.inner_ == rhs.inner_);
+
+            friend bool operator==(const const_iterator& lhs,
+                    const const_iterator& rhs) {
+                return (lhs.node_iter_ == rhs.node_iter_)
+                       && (lhs.edge_iter_ == rhs.edge_iter_)
+                       && (lhs.weight_iter_ == rhs.weight_iter_);
             }
 
             friend bool operator!=(const const_iterator& lhs,
@@ -47,16 +50,82 @@ namespace gdwg {
                 return !(lhs == rhs);
             }
 
-          private:
-            std::vector<std::string>::iterator outer_;
-            const std::vector<std::string>::iterator sentinel_;
-            std::string::iterator inner_;
-
+        private:
             friend class Graph;
-//            iterator(const decltype(outer_)& outer, const decltype(sentinel_)& sentinel, const decltype(inner_)& inner): outer_{outer}, sentinel_{sentinel}, inner_{inner} {}
+
+            std::vector<std::shared_ptr<Node>>::const_iterator node_iter_;
+            const std::vector<std::shared_ptr<Node>>::const_iterator node_sentinel_;
+            typename std::map<N, std::vector<E>>::const_iterator edge_iter_;
+            typename std::vector<E>::const_iterator weight_iter_;
+
+            const_iterator(const decltype(node_iter_)& node_iter,
+                    const decltype (node_sentinel_)& node_sentinel,
+                    const decltype (edge_iter_)& edge_iter,
+                    const decltype (weight_iter_) weight_iter):
+                    node_iter_{node_iter},
+                    node_sentinel_{node_sentinel},
+                    edge_iter_{edge_iter},
+                    weight_iter_{weight_iter} {}
         };
 
-        // Graph Constructors
+    class const_reverse_iterator {
+       public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = std::tuple<N, N, E>;
+        using reference = std::tuple<const N&, const N&, const E&>;
+        using pointer = std::tuple<N*, N*, E*>;
+        using difference_type = int;
+
+        // This one isn't strictly required, but it's nice to have.
+        pointer operator->() const { return &(operator*()); }
+        reference operator*() const;
+        const_iterator& operator++();
+        const const_iterator operator++(int) {
+            auto copy{*this};
+            ++(*this);
+            return copy;
+        }
+        const_iterator& operator--();
+        const const_iterator operator--(int) {
+            auto copy{*this};
+            --(*this);
+            return copy;
+        }
+
+
+        friend bool operator==(const const_iterator& lhs,
+                               const const_iterator& rhs) {
+            return (lhs.node_iter_ == rhs.node_iter_)
+                && (lhs.edge_iter_ == rhs.edge_iter_)
+                && (lhs.weight_iter_ == rhs.weight_iter_);
+        }
+
+        friend bool operator!=(const const_iterator& lhs,
+                               const const_iterator& rhs) {
+            return !(lhs == rhs);
+        }
+
+       private:
+        friend class Graph;
+
+        std::vector<std::shared_ptr<Node>>::const_iterator node_iter_;
+        const std::vector<std::shared_ptr<Node>>::const_iterator node_sentinel_;
+        typename std::map<N, std::vector<E>>::const_iterator edge_iter_;
+        typename std::vector<E>::const_iterator weight_iter_;
+
+        const_iterator(const decltype(node_iter_)& node_iter,
+                       const decltype (node_sentinel_)& node_sentinel,
+                       const decltype (edge_iter_)& edge_iter,
+                       const decltype (weight_iter_) weight_iter):
+                        node_iter_{node_iter},
+                        node_sentinel_{node_sentinel},
+                        edge_iter_{edge_iter},
+                        weight_iter_{weight_iter} {}
+      };
+
+
+        // Vector Constructor
+        Graph<N, E>();
         Graph<N, E>(typename std::vector<N>::const_iterator c1, typename std::vector<N>::const_iterator c2);
         Graph<N, E>(typename std::vector<std::tuple<N, N, E>>::const_iterator, typename std::vector<std::tuple<N, N, E>>::const_iterator);
 
@@ -77,19 +146,21 @@ namespace gdwg {
         const_iterator cbegin();
         const_iterator cend();
         const_reverse_iterator crbegin();
-        const_iterator crend();
+        const_reverse_iterator crend();
         const_iterator begin();
         const_iterator end();
         const_reverse_iterator rbegin();
         const_reverse_iterator rend();
 
     private:
+        std::vector<std::shared_ptr<Node>> nodeList_;
         class Node {
         private:
             N value_;
             std::vector<std::weak_ptr<Node>> children_;
             std::vector<std::weak_ptr<Node>> parents_;
             std::map<N, std::vector<E>> edges_;
+
 
         public:
             Node();
@@ -105,10 +176,6 @@ namespace gdwg {
             void addParent(std::weak_ptr<Node>);
             void removeParent(const N&);
         };
-
-        std::vector<std::shared_ptr<Node>> nodeList_;
-        std::map<std::weak_ptr<Node>, std::weak_ptr<Node>> dstList_;
-        std::map<std::tuple<std::weak_ptr<Node>, std::weak_ptr<Node>>, E> weightList_;
     };
 
 }  // namespace gdwg
@@ -116,5 +183,125 @@ namespace gdwg {
 
 #include "assignments/dg/graph.tpp"
 
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_iterator& gdwg::Graph<N, E>::const_iterator::operator++() {
+    ++weight_iter_;
+
+    if (weight_iter_ == *edge_iter_->end()) {
+        ++edge_iter_;
+
+        if (edge_iter_ == (*node_iter_)->end()) {
+
+            do {
+                ++node_iter_;
+            } while (node_iter_ != node_sentinel_
+                     && (*node_iter_)->begin() == (*node_iter_)->end());
+
+            if (node_iter_ != node_sentinel_) {
+                edge_iter_ = (*node_iter_)->begin();
+                weight_iter_ = edge_iter_->begin();
+            }
+        }
+    }
+}
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_iterator& gdwg::Graph<N, E>::const_iterator::operator--() {
+
+    if (weight_iter_ == edge_iter_->begin()) {
+
+        if (edge_iter_ == (*node_iter_)->begin()) {
+
+            do {
+                --node_iter_;
+            } while (node_iter_ != node_sentinel_
+                     && (*node_iter_)->begin() == (*node_iter_)->end());
+
+            if (node_iter_ != node_sentinel_) {
+                edge_iter_ = (*node_iter_)->end();
+                --edge_iter_;
+
+                weight_iter_ = edge_iter_->end();
+                --weight_iter_;
+            }
+
+        } else {
+            --edge_iter_;
+
+            weight_iter_ = edge_iter_->end();
+            --weight_iter_;
+        }
+
+    } else {
+        --weight_iter_;
+    }
+
+}
+
+//template<typename N, typename E>
+//typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::const_iterator::operator++(int) {
+//    auto copy{*this};
+//    ++(*this);
+//    return copy;
+//}
+//
+//template<typename N, typename E>
+//typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::const_iterator::operator--(int) {
+//    auto copy{*this};
+//    --(*this);
+//    return copy;
+//}
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_iterator::reference
+gdwg::Graph<N, E>::const_iterator::operator*() const {
+    return {(*node_iter_).getValue(), *edge_iter_, *weight_iter_};
+}
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::begin() {
+    typename std::vector<std::shared_ptr<Node>>::iterator it = nodeList_.begin();
+
+    while (*it.getChildren().size() == 0) {
+        ++it;
+    }
+
+    if (it == nodeList_.end()) {
+        return end();
+    }
+
+    std::map<N, std::vector<E>> children = (*it).getChildren();
+    std::vector<E> weights = children[0];
+    return {it, nodeList_.end(), children.begin(), weights.begin()};
+}
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::end() {
+    return {nodeList_.end(), nodeList_.end(), {}, {}};
+}
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_reverse_iterator gdwg::Graph<N, E>::rbegin() {
+    typename std::vector<std::shared_ptr<Node>>::const_iterator it = nodeList_
+            .rbegin();
+
+    while (*it.getChildren().size() == 0) {
+        ++it;
+    }
+
+    if (it == nodeList_.rend()) {
+        return rend();
+    }
+
+    std::map<N, std::vector<E>> children = *it.getChildren();
+    std::vector<E> weights = children[children.size()-1];
+    return {it, nodeList_.rend(), children.rbegin(), weights.rbegin()};
+}
+
+template<typename N, typename E>
+typename gdwg::Graph<N, E>::const_reverse_iterator gdwg::Graph<N, E>::rend() {
+    return {nodeList_.rend(), nodeList_.rend(), {}, {}};
+}
 
 #endif  // ASSIGNMENTS_DG_GRAPH_H_

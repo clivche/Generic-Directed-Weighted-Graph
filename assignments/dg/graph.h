@@ -50,7 +50,7 @@ namespace gdwg {
                 typename std::vector<std::shared_ptr<Node>>::iterator node_iter_;
                 const typename std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
                 const typename std::vector<std::shared_ptr<Node>>::iterator reverse_sentinel_;
-                typename std::map<N, std::vector<E>>::iterator edge_iter_;
+                typename std::vector<N>::iterator edge_iter_;
                 typename std::vector<E>::iterator weight_iter_;
 
                 const_reverse_iterator(const decltype(node_iter_)& node_iter,
@@ -101,9 +101,11 @@ namespace gdwg {
                 friend class Graph;
 
                 typename std::vector<std::shared_ptr<Node>>::iterator node_iter_;
-                const typename std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-                const typename std::vector<std::shared_ptr<Node>>::iterator reverse_sentinel_;
-                typename std::map<N, std::vector<E>>::iterator edge_iter_;
+                const typename std::vector<std::shared_ptr<Node>>::iterator
+                        node_sentinel_; //end
+                const typename std::vector<std::shared_ptr<Node>>::iterator
+                        reverse_sentinel_; //begin
+                typename std::vector<N>::iterator edge_iter_;
                 typename std::vector<E>::iterator weight_iter_;
 
                 const_iterator(const decltype(node_iter_)& node_iter,
@@ -218,13 +220,13 @@ namespace gdwg {
                 std::map<N, std::vector<E>> e1 = n.getEdges();
 
                 if (e1.size() != 0) {
-                    for (int i = 0; i < e1.size(); i++) {
-                        std::pair<N, std::vector<E>> child = *e1[i];
-                        typename std::vector<E>::iterator it = child.second
+
+                    for (auto ch = e1.begin(); ch != e1.end(); ++ch) {
+                        typename std::vector<E>::iterator it = *ch.second
                                 .begin();
 
-                        for (it; it != child.second.end(); ++it) {
-                            os << CHILD_START << child.first << EDGE_SEPARATOR;
+                        for (it; it != *ch.second.end(); ++it) {
+                            os << CHILD_START << *ch.first << EDGE_SEPARATOR;
                             os << *it;
                         }
                     }
@@ -272,13 +274,13 @@ namespace gdwg {
 
         const_reverse_iterator crend() const;
 
-        const_iterator begin() const { return cbegin(); }
+        inline const_iterator begin() const { return cbegin(); }
 
-        const_iterator end() const { return cend(); }
+        inline const_iterator end() const { return cend(); }
 
-        const_reverse_iterator rbegin() const { return crbegin(); }
+        inline const_reverse_iterator rbegin() const { return crbegin(); }
 
-        const_reverse_iterator rend() const { return crend(); }
+        inline const_reverse_iterator rend() const { return crend(); }
 
         class Node {
 
@@ -321,6 +323,9 @@ namespace gdwg {
 
 
         };
+
+        std::vector<N> dummyN;
+        std::vector<E> dummyE;
 
     private:
         std::vector<std::shared_ptr<Node>> nodeList_;

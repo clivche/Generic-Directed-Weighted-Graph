@@ -101,10 +101,8 @@ namespace gdwg {
                 friend class Graph;
 
                 typename std::vector<std::shared_ptr<Node>>::iterator node_iter_;
-                const typename std::vector<std::shared_ptr<Node>>::iterator
-                        node_sentinel_; //end
-                const typename std::vector<std::shared_ptr<Node>>::iterator
-                        reverse_sentinel_; //begin
+                const typename std::vector<std::shared_ptr<Node>>::iterator node_sentinel_; //end
+                const typename std::vector<std::shared_ptr<Node>>::iterator reverse_sentinel_; //begin
                 typename std::vector<N>::iterator edge_iter_;
                 typename std::vector<E>::iterator weight_iter_;
 
@@ -112,7 +110,7 @@ namespace gdwg {
                                  const decltype (node_sentinel_)& node_sentinel,
                                  const decltype (reverse_sentinel_)& reverse_sentinel_,
                                  const decltype (edge_iter_)& edge_iter,
-                                 const decltype (weight_iter_) weight_iter):
+                                 const decltype (weight_iter_)& weight_iter):
                       node_iter_{node_iter},
                       node_sentinel_{node_sentinel},
                       reverse_sentinel_{reverse_sentinel_},
@@ -217,18 +215,21 @@ namespace gdwg {
                 Node n = *g.nodeList_[counter];
                 os << n.getValue() << NODE_START;
 
-                std::map<N, std::vector<E>> e1 = n.getEdges();
+                std::vector<std::weak_ptr<Node>> children = n.getChildren();
+                std::map<N, std::vector<E>> edge_map= n.getEdges();
+                std::vector<N> avail_dst;
 
-                if (e1.size() != 0) {
+                for (auto it = children.begin(); it != children.end(); ++it) {
+                    if (auto childLock = it->lock()) {
+                        avail_dst.push_back(childLock->getValue());
+                    }
+                }
 
-                    for (auto ch = e1.begin(); ch != e1.end(); ++ch) {
-                        typename std::vector<E>::iterator it;
+                for (auto ch = avail_dst.begin(); ch != avail_dst.end(); ++ch) {
+                    typename std::vector<E> weights = edge_map[*ch];
 
-                        for (it = ch->second.begin(); it != ch->second.end();
-                        ++it) {
-                            os << CHILD_START << ch->first << EDGE_SEPARATOR;
-                            os << *it;
-                        }
+                    for (auto it = weights.begin(); it != weights.end(); ++it) {
+                        os << CHILD_START << *ch << EDGE_SEPARATOR << *it;
                     }
                 }
 

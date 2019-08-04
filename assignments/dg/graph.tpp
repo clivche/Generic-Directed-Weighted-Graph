@@ -77,11 +77,12 @@ void gdwg::Graph<N, E>::Node::addChild(std::weak_ptr<Node> dst) {
 
     auto nextChild = children_.begin();
     bool found = false;
+    auto dstLock = dst.lock();
     for (auto it = children_.begin(); it != children_.end(); it++) {
         if (auto child = it->lock()) {
-            if (dst->getValue() < child->getValue()) {
+            if (dstLock->getValue() < child->getValue()) {
                 nextChild = it;
-            } else if (dst->getValue() == child->getValue()) {
+            } else if (dstLock->getValue() == child->getValue()) {
                 found = true;
                 break;
             }
@@ -124,11 +125,12 @@ void gdwg::Graph<N, E>::Node::addParent(std::weak_ptr<Node> src) {
 
     auto nextParent = parents_.begin();
     bool found = false;
+    auto srcLock = src.lock();
     for (auto it = parents_.begin(); it != parents_.end(); it++) {
         if (auto parent = it->lock()) {
-            if (src->getValue() < parent->getValue()) {
+            if (srcLock->getValue() < parent->getValue()) {
                 nextParent = it;
-            } else if (src->getValue() == parent->getValue()) {
+            } else if (srcLock->getValue() == parent->getValue()) {
                 found = true;
                 break;
             }
@@ -243,13 +245,17 @@ gdwg::Graph<N, E>::Graph(std::initializer_list<N> args) {
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>& g) {
     // Initialise copied graph with nodeList_
-    for (auto& it = g->GetNodes().begin(); it != g->GetNodes().end(); it++) {
+    for (auto it = g.GetNodes().begin(); it != g.GetNodes().end(); it++) {
         this->InsertNode(*it);
     }
     // Copy every edge into graph
-    for (auto& it = g.begin(); it != g.end(); g++) {
-        this->InsertEdge(*it);
-    }
+    auto it = g.begin();
+    std::tuple<N,N,E> temp = *it;
+
+//    for (auto it = g.begin(); it != g.end(); ++it) {
+////        this->InsertEdge(*it);
+//        std::tuple<N,N,E> temp = *it;
+//    }
 }
 
 /**
@@ -312,17 +318,23 @@ gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(gdwg::Graph<N, E>&& g) {
 template<typename N, typename E>
 bool gdwg::Graph<N, E>::InsertNode(const N &n) {
     // Insert node at beginning by default
-    auto next = nodeList_.begin();
-    for (auto it = nodeList_.begin(); it != nodeList_.end(); it++) {
-        // Insert node before every value it is less than
-        if (n < (*it)->getValue()) {
-            next = it;
-        }
+    auto it = nodeList_.begin();
+
+    while (it != nodeList_.end()) {
         if (n == (*it)->getValue()) {
             return false;
         }
+
+        // Insert node before every value it is less than
+        if (n > (*it)->getValue()) {
+            ++it;
+        } else {
+            nodeList_.insert(it, std::shared_ptr<Node>(new Node(n)));
+            return true;
+        }
     }
-    nodeList_.insert(next, std::shared_ptr<Node>(new Node(n)));
+
+    nodeList_.push_back(std::shared_ptr<Node>(new Node(n)));
     return true;
 }
 
@@ -372,9 +384,9 @@ bool gdwg::Graph<N, E>::InsertEdge(const N &src, const N &dst, const E &w) {
  */
 template<typename N, typename E>
 bool gdwg::Graph<N, E>::DeleteNode(const N &n) {
-    for (const auto &node : nodeList_) {
-        if (node->getValue() == n) {
-            nodeList_.erase(node);
+    for (auto it = nodeList_.begin(); it != nodeList_.end(); ++it) {
+        if ((*it)->getValue() == n) {
+            nodeList_.erase(it);
             return true;
         }
     }
@@ -393,24 +405,34 @@ bool gdwg::Graph<N, E>::DeleteNode(const N &n) {
 template<typename N, typename E>
 bool gdwg::Graph<N, E>::Replace(const N &oldData, const N &newData) {
 
-    auto &old = nodeList_.end();
-    for (const auto &node : nodeList_) {
-        if (node->getValue() == newData) {
+    // Find old and new node
+    auto old = nodeList_.end();
+    for (auto it = nodeList_.begin(); it != nodeList_.end(); it++) {
+        if ((*it)->getValue() == newData) {
             return false;
         }
-        if (node->getValue() == oldData) {
-            old = node;
+        if ((*it)->getValue() == oldData) {
+            old = it;
         }
     }
 
+    // If old value was found
     if (old != nodeList_.end()) {
-        old->changeValue(newData);
-        for (const auto &parent : old->getParents()) {
-            if (auto &sharedParent = parent->lock()) {
-                auto &edges = sharedParent->getEdges();
-                edges[newData] = edges[oldData];
-                edges[oldData]->clear();
-            }
+        // Replace value
+        (*old)->changeValue(newData);
+
+        // edit edges map in parents of oldNode
+        auto parents = (*old)->getParents();
+        for (auto it = parents.begin(); it != parents.end(); ++it) {
+//            if (auto sharedParent = it->lock()) {
+                std::cout << "pls";
+                //                auto edges = sharedParent->getEdges();
+//                edges.emplace(newData, edges[oldData]);
+//                auto old_it = edges.find(oldData);
+//                edges.erase(old_it);
+//                edges[newData] = edges[oldData];
+//                edges[oldData] = [];
+//            }
         }
         return true;
     }
@@ -836,8 +858,12 @@ typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cbegin() const {
     std::map<N, std::vector<E>> edges = (*it)->getEdges();
     std::vector<E> weights = edges.begin()->second;
 
-    return {it, nodeList_.end(), nodeList_.begin(), children.begin(), weights
-    .begin()};
+    std::vector<std::shared_ptr<Node>>first = nodeList_;
+    std::vector<N> fourth;
+    std::vector<E> fifth;
+//    return {first.begin(), first.end(), first.begin(), children.begin(), weights.begin()};
+    return {&it, &nodeList_.end(), &nodeList_.begin(), children.begin(), weights
+        .begin()};
 
     //todo what happens when key maps to emoty vector
 }

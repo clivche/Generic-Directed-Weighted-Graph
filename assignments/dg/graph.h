@@ -222,11 +222,11 @@ namespace gdwg {
                 if (e1.size() != 0) {
 
                     for (auto ch = e1.begin(); ch != e1.end(); ++ch) {
-                        typename std::vector<E>::iterator it = *ch.second
-                                .begin();
+                        typename std::vector<E>::iterator it;
 
-                        for (it; it != *ch.second.end(); ++it) {
-                            os << CHILD_START << *ch.first << EDGE_SEPARATOR;
+                        for (it = ch->second.begin(); it != ch->second.end();
+                        ++it) {
+                            os << CHILD_START << ch->first << EDGE_SEPARATOR;
                             os << *it;
                         }
                     }

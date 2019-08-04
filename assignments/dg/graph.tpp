@@ -726,10 +726,6 @@ template<typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator &gdwg::Graph<N,
         E>::const_iterator::operator--() {
 
-//    std::vector<std::weak_ptr<Node>> children = (*node_iter_)->getChildren();
-//    std::map<N, std::vector<E>> edge_map = (*node_iter_)->getEdges();
-//    std::vector<E> edge_vector = edge_map[(*edge_iter_).first];
-
     std::vector<N> children;
     for (const auto& child : (*node_iter_)->getChildren()) {
         children.push_back(child->getValue());
@@ -894,10 +890,6 @@ typename gdwg::Graph<N, E>::const_reverse_iterator &gdwg::Graph<N,
         E>::const_reverse_iterator::operator++() {
 
     ++weight_iter_;
-
-//    std::vector<std::weak_ptr<Node>> children = (*node_iter_)->getChildren();
-//    std::map<N, std::vector<E>> edge_map = (*node_iter_)->getEdges();
-//    std::vector<E> edge_vector = edge_map[*edge_iter_.first];
 
     std::vector<N> children;
     for (const auto& child : (*node_iter_)->getChildren()) {

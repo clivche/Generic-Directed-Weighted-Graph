@@ -619,19 +619,26 @@ typename gdwg::Graph<N, E>::const_iterator &gdwg::Graph<N,
         E>::const_iterator::operator++() {
     ++weight_iter_;
 
-    if (weight_iter_ == *edge_iter_->end()) {
+    std::vector<std::weak_ptr<Node>> children = (*node_iter_).getChildren();
+    std::vector<E> edge_vector = (*node_iter_).getEdges()
+            [children[*edge_iter_]];
+
+    if (weight_iter_ == edge_vector.end()) {
         ++edge_iter_;
 
-        if (edge_iter_ == (*node_iter_)->end()) {
+        if (edge_iter_ == children.end()) {
 
             do {
                 ++node_iter_;
             } while (node_iter_ != node_sentinel_
-                     && (*node_iter_)->begin() == (*node_iter_)->end());
+                    && children.begin() == children.end());
 
             if (node_iter_ != node_sentinel_) {
-                edge_iter_ = (*node_iter_)->begin();
-                weight_iter_ = edge_iter_->begin();
+                edge_iter_ = children.begin();
+
+                std::map<N, std::vector<E>> edges = (*node_iter_).getEdges();
+                std::vector<E> weights = edges.find(*edge_iter_);
+                weight_iter_ = weights.begin();
             }
         }
     }
@@ -646,27 +653,36 @@ template<typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator &gdwg::Graph<N,
         E>::const_iterator::operator--() {
 
-    if (weight_iter_ == edge_iter_->begin()) {
+    std::vector<std::weak_ptr<Node>> children = (*node_iter_).getChildren();
+    std::vector<E> edge_vector = (*node_iter_).getEdges()
+            [children[*edge_iter_]];
 
-        if (edge_iter_ == (*node_iter_)->begin()) {
+    if (weight_iter_ == edge_vector.begin()) {
+
+        if (edge_iter_ == children.begin()) {
 
             do {
                 --node_iter_;
             } while (node_iter_ != node_sentinel_
-                     && (*node_iter_)->begin() == (*node_iter_)->end());
+                     && children.begin() == children.end());
 
             if (node_iter_ != node_sentinel_) {
-                edge_iter_ = (*node_iter_)->end();
+
+                children = (*node_iter_).getChildren();
+                edge_vector = (*node_iter_).getEdges()[children[*edge_iter_]];
+
+                edge_iter_ = children.end();
                 --edge_iter_;
 
-                weight_iter_ = edge_iter_->end();
+                weight_iter_ = edge_vector.end();
                 --weight_iter_;
             }
 
         } else {
             --edge_iter_;
+            edge_vector = (*node_iter_).getEdges()[children[*edge_iter_]];
 
-            weight_iter_ = edge_iter_->end();
+            weight_iter_ = edge_vector.end();
             --weight_iter_;
         }
 
@@ -705,7 +721,8 @@ gdwg::Graph<N, E>::const_iterator::operator--(int) {
 template<typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator::reference
 gdwg::Graph<N, E>::const_iterator::operator*() const {
-    return {(*node_iter_).getValue(), *edge_iter_, *weight_iter_};
+    return {(*node_iter_).getValue(), *node_sentinel_, *edge_iter_,
+            *weight_iter_};
 }
 
 /**
@@ -728,8 +745,9 @@ typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cbegin() const {
         return end();
     }
 
-    std::map<N, std::vector<E>> children = (*it).getChildren();
-    std::vector<E> weights = children[0];
+    std::vector<N> children = (*it).getChildren();
+    std::map<N, std::vector<E>> edges = (*it).getEdges();
+    std::vector<E> weights = edges[0].second;
     return {it, nodeList_.end(), children.begin(), weights.begin()};
 }
 
@@ -761,27 +779,36 @@ template<typename N, typename E>
 typename gdwg::Graph<N, E>::const_reverse_iterator &gdwg::Graph<N,
         E>::const_reverse_iterator::operator++() {
 
-    if (weight_iter_ == edge_iter_->begin()) {
+    std::vector<std::weak_ptr<Node>> children = (*node_iter_).getChildren();
+    std::vector<E> edge_vector = (*node_iter_).getEdges()
+    [children[*edge_iter_]];
 
-        if (edge_iter_ == (*node_iter_)->begin()) {
+    if (weight_iter_ == edge_vector.begin()) {
+
+        if (edge_iter_ == children.begin()) {
 
             do {
                 --node_iter_;
             } while (node_iter_ != node_sentinel_
-                     && (*node_iter_)->begin() == (*node_iter_)->end());
+                     && children.begin() == children.end());
 
             if (node_iter_ != node_sentinel_) {
-                edge_iter_ = (*node_iter_)->end();
+
+                children = (*node_iter_).getChildren();
+                edge_vector = (*node_iter_).getEdges()[children[*edge_iter_]];
+
+                edge_iter_ = children.end();
                 --edge_iter_;
 
-                weight_iter_ = edge_iter_->end();
+                weight_iter_ = edge_vector.end();
                 --weight_iter_;
             }
 
         } else {
             --edge_iter_;
+            edge_vector = (*node_iter_).getEdges()[children[*edge_iter_]];
 
-            weight_iter_ = edge_iter_->end();
+            weight_iter_ = edge_vector.end();
             --weight_iter_;
         }
 
@@ -801,19 +828,26 @@ typename gdwg::Graph<N, E>::const_reverse_iterator &gdwg::Graph<N,
 
     ++weight_iter_;
 
-    if (weight_iter_ == *edge_iter_->end()) {
+    std::vector<std::weak_ptr<Node>> children = (*node_iter_).getChildren();
+    std::vector<E> edge_vector = (*node_iter_).getEdges()
+            [children[*edge_iter_]];
+
+    if (weight_iter_ == edge_vector.end()) {
         ++edge_iter_;
 
-        if (edge_iter_ == (*node_iter_)->end()) {
+        if (edge_iter_ == children.end()) {
 
             do {
                 ++node_iter_;
             } while (node_iter_ != node_sentinel_
-                     && (*node_iter_)->begin() == (*node_iter_)->end());
+                     && children.begin() == children.end());
 
             if (node_iter_ != node_sentinel_) {
-                edge_iter_ = (*node_iter_)->begin();
-                weight_iter_ = edge_iter_->begin();
+                edge_iter_ = children.begin();
+
+                std::map<N, std::vector<E>> edges = (*node_iter_).getEdges();
+                std::vector<E> weights = edges.find(*edge_iter_);
+                weight_iter_ = weights.begin();
             }
         }
     }
@@ -849,7 +883,8 @@ gdwg::Graph<N, E>::const_reverse_iterator::operator--(int) {
 template<typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator::reference
 gdwg::Graph<N, E>::const_reverse_iterator::operator*() const {
-    return {(*node_iter_).getValue(), *edge_iter_, *weight_iter_};
+    return {(*node_iter_).getValue(), *node_sentinel_, *edge_iter_,
+            *weight_iter_};
 }
 
 /**
@@ -873,9 +908,12 @@ gdwg::Graph<N, E>::crbegin() const {
         return rend();
     }
 
-    std::map<N, std::vector<E>> children = *it.getChildren();
-    std::vector<E> weights = children[children.size() - 1];
-    return {it, nodeList_.rend(), children.rbegin(), weights.rbegin()};
+
+    std::vector<N> children = (*it).getChildren();
+    std::map<N, std::vector<E>> edges = (*it).getEdges();
+    std::vector<E> last_weights = edges[edges.size()-1];
+
+    return {it, nodeList_.rend(), children.rbegin(), last_weights.rbegin()};
 }
 
 /**

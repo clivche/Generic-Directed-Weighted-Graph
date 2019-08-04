@@ -50,7 +50,7 @@ namespace gdwg {
 
             std::vector<std::shared_ptr<Node>>::iterator node_iter_;
             const std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-            typename std::map<N, std::vector<E>>::iterator edge_iter_;
+            typename std::vector<N>::iterator edge_iter_;
             typename std::vector<E>::iterator weight_iter_;
 
             const_reverse_iterator(const decltype(node_iter_)& node_iter,
@@ -100,7 +100,7 @@ namespace gdwg {
 
             std::vector<std::shared_ptr<Node>>::iterator node_iter_;
             const std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-            typename std::map<N, std::vector<E>>::iterator edge_iter_;
+            typename std::vector<N>::iterator edge_iter_;
             typename std::vector<E>::iterator weight_iter_;
 
             const_iterator(const decltype(node_iter_)& node_iter,
@@ -313,5 +313,6 @@ namespace gdwg {
     };
 
 }  // namespace gdwg
+
 
 #endif  // ASSIGNMENTS_DG_GRAPH_H_

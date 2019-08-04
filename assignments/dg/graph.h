@@ -222,14 +222,19 @@ namespace gdwg {
                 for (auto it = children.begin(); it != children.end(); ++it) {
                     if (auto childLock = it->lock()) {
                         avail_dst.push_back(childLock->getValue());
+                        std::cout<<childLock->getValue();
                     }
                 }
 
-                for (auto ch = avail_dst.begin(); ch != avail_dst.end(); ++ch) {
-                    typename std::vector<E> weights = edge_map[*ch];
+
+//                for (const auto& item : edge_map) {
+//                    std::cout<< item.first << "\n";
+//                }
+                for (auto dst = avail_dst.begin(); dst != avail_dst.end(); ++dst) {
+                    typename std::vector<E> weights = edge_map[*dst];
 
                     for (auto it = weights.begin(); it != weights.end(); ++it) {
-                        os << CHILD_START << *ch << EDGE_SEPARATOR << *it;
+                        os << CHILD_START << *dst << EDGE_SEPARATOR << *it;
                     }
                 }
 

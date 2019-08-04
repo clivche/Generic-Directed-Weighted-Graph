@@ -424,15 +424,22 @@ bool gdwg::Graph<N, E>::Replace(const N &oldData, const N &newData) {
         // edit edges map in parents of oldNode
         auto parents = (*old)->getParents();
         for (auto it = parents.begin(); it != parents.end(); ++it) {
-//            if (auto sharedParent = it->lock()) {
-                std::cout << "pls";
-                //                auto edges = sharedParent->getEdges();
-//                edges.emplace(newData, edges[oldData]);
-//                auto old_it = edges.find(oldData);
-//                edges.erase(old_it);
-//                edges[newData] = edges[oldData];
-//                edges[oldData] = [];
-//            }
+            if (auto sharedParent = it->lock()) {
+//                std::cout << (sharedParent)->getValue();
+                auto edges = sharedParent->getEdges();
+              std::vector<E> newVector;
+              auto old_it = edges.find(oldData);
+                for (const auto& edge : edges[oldData]) {
+//                    std::cout<< edge << "\n";
+                    newVector.push_back(edge);
+                }
+                edges.emplace(newData, newVector);
+                edges.erase(old_it);
+                for (const auto& edge : edges[newData]) {
+                    std::cout<<newData << "|" << edge<<"\n";
+                }
+
+            }
         }
         return true;
     }

@@ -22,9 +22,10 @@ int main() {
   g.InsertEdge("are", "you?", 3);
 
   g.DeleteNode("how");
-  std::cout << g << '\n';
+//  std::cout << g << '\n';
 
-  g.Replace("hello", "chicken");
+  g.Replace("are", "chicken");
+
   std::cout << g << '\n';
 //  g.Replace("how", "")
 

@@ -117,11 +117,15 @@ namespace gdwg {
 
         // TODO initializer list constructor
 
+        Graph<N, E>() {};
+
         Graph<N, E>(typename std::vector<N>::const_iterator c1,
                     typename std::vector<N>::const_iterator c2);
 
         Graph<N, E>(typename std::vector<std::tuple<N, N, E>>::const_iterator,
                     typename std::vector<std::tuple<N, N, E>>::const_iterator);
+
+        Graph<N, E>(std::initializer_list<N>);
 
         Graph<N, E>(gdwg::Graph<N, E>& g);
 
@@ -145,6 +149,8 @@ namespace gdwg {
 //        friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
 //            // TODO
 //        }
+
+        inline std::vector<std::shared_ptr<Node>> GetNodeList(){return nodeList_;};
 
         bool InsertEdge(const N&, const N&, const E&);
 
@@ -229,8 +235,7 @@ namespace gdwg {
         };
 
         std::vector<std::shared_ptr<Node>> nodeList_;
-//        std::map<std::weak_ptr<Node>, std::weak_ptr<Node>> dstList_;
-//        std::map<std::tuple<std::weak_ptr<Node>, std::weak_ptr<Node>>, E> weightList_;
+
     };
 
 }  // namespace gdwg

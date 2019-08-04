@@ -152,6 +152,7 @@ void gdwg::Graph<N, E>::Node::addParent(std::weak_ptr<Node> src) {
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1,
                          typename std::vector<N>::const_iterator c2) {
+    sort(c1,c2);
     for (auto &it = c1; it != c2; it++) {
         // Check for duplicates in initaliser vector
         bool alreadyInList = false;
@@ -179,6 +180,7 @@ template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(
         typename std::vector<std::tuple<N, N, E>>::const_iterator c1,
         typename std::vector<std::tuple<N, N, E>>::const_iterator c2) {
+    //TODO sort list
     for (auto &it = c1; it != c2; it++) {
         // Check for duplicates in initaliser vector
         bool alreadyInList = false;
@@ -197,12 +199,47 @@ gdwg::Graph<N, E>::Graph(
     }
 }
 
+//template<typename N, typename E>
+//bool sortTuple(const std::tuple<N,N,E>& a,
+//               const std::tuple<int, int, int>& b)
+//{
+//    return (get<1>(a) < get<1>(b));
+//}
+
+
+template<typename N, typename E>
+gdwg::Graph<N, E>::Graph(std::initializer_list<N> args) {
+    sort(args.begin(), args.end());
+    for (auto &it = args.begin(); it != args.begin(); it++) {
+        // Check for duplicates in initaliser vector
+        bool alreadyInList = false;
+        for (const auto &item : nodeList_) {
+            if (item->getValue() == *it) {
+                alreadyInList = true;
+                break;
+            }
+        }
+        if (!alreadyInList) {
+            nodeList_.push(std::shared_ptr<Node>(new Node(*it)));
+        }
+    }
+}
+
+
+
 /**
  * Copy Constructor
  */
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>& g) {
-    // TODO
+    // Initialise copied graph with nodeList_
+    for (auto& it = g->GetNodes().begin(); it != g->GetNodes().end(); it++) {
+        this->InsertNode(*it);
+    }
+    // Copy every edge into graph
+    for (auto& it = g.begin(); it != g.end(); g++) {
+        this->InsertEdge(*it);
+    }
 }
 
 /**
@@ -210,31 +247,52 @@ gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>& g) {
  */
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>&& g) {
-    // TODO
+    this->nodeList_ = std::move(g.GetNodeList());
 }
 
 /**
  * Destructor
  */
 template<typename N, typename E>
-~gdwg::Graph<N, E>() {
-    // TODO
+gdwg::Graph<N, E>::~Graph() {
+    for (const auto& node : nodeList_) {
+        delete node->value_;
+        delete node->children_;
+        delete node->parents_;
+        delete node->edges_;
+    }
+    delete nodeList_;
 }
 
 /**
  * A copy assignment operator overload
  */
 template<typename N, typename E>
-gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(const gdwg::Graph<N, E> &) {
-    return <#initializer#>;
+gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(const gdwg::Graph<N, E>& g) {
+    if (&g == *this) {
+      return *this;
+    }
+    // Initialise copied graph with nodeList_
+    for (auto& it = g->GetNodes().begin(); it != g->GetNodes().end(); it++) {
+        this->InsertNode(*it);
+    }
+    // Copy every edge into graph
+    for (auto& it = g.begin(); it != g.end(); g++) {
+        this->InsertEdge(*it);
+    }
+    return *this;
 }
 
 /**
  * A move assignment operator overload
  */
 template<typename N, typename E>
-gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(gdwg::Graph<N, E> &&) {
-    return <#initializer#>;
+gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(gdwg::Graph<N, E>&& g) {
+    if (&g == *this) {
+        return *this;
+    }
+    this->nodeList_ = std::move(g.GetNodeList());
+    return *this;
 }
 
 /**
@@ -273,11 +331,11 @@ bool gdwg::Graph<N, E>::InsertNode(const N &n) {
 template<typename N, typename E>
 bool gdwg::Graph<N, E>::InsertEdge(const N &src, const N &dst, const E &w) {
 
-    // Insert nodes into list
+    // Insert nodes into list (will do nothing if already inserted)
     InsertNode(src);
     InsertNode(dst);
 
-    // Find pointers to appropriate nodes
+    // Find pointers to src and dst nodes
     std::shared_ptr<Node> srcNode;
     std::shared_ptr<Node> dstNode;
     for (const auto &node : nodeList_) {
@@ -594,7 +652,7 @@ bool gdwg::Graph<N, E>::erase(const N &src, const N &dst, const E &w) {
 }
 
 /**
- * This function removes the position at the location the iterator points to.
+ * This function removes the edge at the location the iterator points to.
  * This function returns an iterator to the element AFTER the one that has
  * been removed. If no erase can be made, the equivalent of gdwg::Graph<N,
  * E>::end() is returned.
@@ -899,3 +957,4 @@ gdwg::Graph<N, E>::crend() const {
 
     return {nodeList_.rend(), nodeList_.rend(), {}, {}};
 }
+

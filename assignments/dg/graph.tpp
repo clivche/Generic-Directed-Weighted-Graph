@@ -168,6 +168,24 @@ gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1,
     }
 }
 
+template<typename N, typename E>
+bool sortTuple(const std::tuple<N,N,E>& a,
+               const std::tuple<N,N,E>& b)
+{
+    if (std::get<1>(a) != std::get<1>(b)) {
+        return (std::get<1>(a) == std::get<1>(b));
+    }
+    else {
+        if (std::get<2>(a) != std::get<2>(b)) {
+            return (std::get<2>(a) < std::get<2>(b));
+        }
+        else {
+            return (std::get<3>(a) < std::get<3>(b));
+        }
+    }
+}
+
+
 /**
  * Constructor
  * Iterators over tuples of (source node, destination node, edge weight) and
@@ -180,7 +198,7 @@ template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(
         typename std::vector<std::tuple<N, N, E>>::const_iterator c1,
         typename std::vector<std::tuple<N, N, E>>::const_iterator c2) {
-    //TODO sort list
+    sort(c1,c2, sortTuple);
     for (auto &it = c1; it != c2; it++) {
         // Check for duplicates in initaliser vector
         bool alreadyInList = false;
@@ -198,13 +216,6 @@ gdwg::Graph<N, E>::Graph(
         InsertEdge(it[0], it[1], it[2]);
     }
 }
-
-//template<typename N, typename E>
-//bool sortTuple(const std::tuple<N,N,E>& a,
-//               const std::tuple<int, int, int>& b)
-//{
-//    return (get<1>(a) < get<1>(b));
-//}
 
 
 template<typename N, typename E>

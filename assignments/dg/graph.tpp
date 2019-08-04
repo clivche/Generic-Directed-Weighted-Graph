@@ -143,6 +143,22 @@ void gdwg::Graph<N, E>::Node::addParent(std::weak_ptr<Node> src) {
     return;
 }
 
+/**
+ * Replaces the destination node in teh edges_ map
+ *
+ * @param weights - new vector of weights from this node to newNode
+ * @param newNode - new dst
+ * @param oldNode - old dst
+ */
+template<typename N, typename E>
+void gdwg::Graph<N, E>::Node::UpdateEdges(std::vector<E> weights, N newNode,
+                                          N oldNode) {
+
+    this->edges_[newNode] = weights;
+    this->edges_.erase(this->edges_.find(oldNode));
+}
+
+
 // Graph Functions
 /**
  * Constructor
@@ -425,20 +441,13 @@ bool gdwg::Graph<N, E>::Replace(const N &oldData, const N &newData) {
         auto parents = (*old)->getParents();
         for (auto it = parents.begin(); it != parents.end(); ++it) {
             if (auto sharedParent = it->lock()) {
-//                std::cout << (sharedParent)->getValue();
                 auto edges = sharedParent->getEdges();
-              std::vector<E> newVector;
-              auto old_it = edges.find(oldData);
+                std::vector<E> newWeightVector;
                 for (const auto& edge : edges[oldData]) {
-//                    std::cout<< edge << "\n";
-                    newVector.push_back(edge);
-                }
-                edges.emplace(newData, newVector);
-                edges.erase(old_it);
-                for (const auto& edge : edges[newData]) {
-                    std::cout<<newData << "|" << edge<<"\n";
+                    newWeightVector.push_back(edge);
                 }
 
+                (*old)->UpdateEdges(newWeightVector, newData, oldData);
             }
         }
         return true;

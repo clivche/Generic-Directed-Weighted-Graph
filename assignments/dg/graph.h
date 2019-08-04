@@ -222,14 +222,10 @@ namespace gdwg {
                 for (auto it = children.begin(); it != children.end(); ++it) {
                     if (auto childLock = it->lock()) {
                         avail_dst.push_back(childLock->getValue());
-                        std::cout<<childLock->getValue();
+//                        std::cout<<childLock->getValue();
                     }
                 }
 
-
-//                for (const auto& item : edge_map) {
-//                    std::cout<< item.first << "\n";
-//                }
                 for (auto dst = avail_dst.begin(); dst != avail_dst.end(); ++dst) {
                     typename std::vector<E> weights = edge_map[*dst];
 
@@ -315,6 +311,9 @@ namespace gdwg {
                 inline N getValue() {return value_;}
 
                 inline void changeValue(N val) { value_ = val; }
+
+                void UpdateEdges(std::vector<E> weights, N newNode, N
+                oldNode);
 
                 bool addEdge(const N&, const E&);
 

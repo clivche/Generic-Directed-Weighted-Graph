@@ -87,3 +87,46 @@ bool operator==
 bool operator!=
 
 std::ostream& operator<<
+
+
+-----------------
+TESTING SCENARIOS
+-----------------
+// const correctness to each of them
+
+// tests graph construction and node + edge insertion
+// create same graph using different constructors
+// print graphs and compare output
+
+// isnode
+
+// isedge
+
+// Delete node
+// that has children
+// node that is a child
+
+// clear
+
+// replace node
+
+// mergereplace
+
+
+// Printing graph
+
+// comparing 2 graphs
+
+// comparing 2 graphs made in different ways
+
+// test 3: tests error handling
+
+// test 4: tests data integrity
+
+// copy construction
+
+// move construction
+
+// copy assignment
+
+// move assignment

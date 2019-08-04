@@ -5,112 +5,117 @@
 #include <map>
 #include <memory>
 
-class Node;
-
 namespace gdwg {
 
     template <typename N, typename E>
     class Graph {
+
     public:
+        class Node;
 
         class const_reverse_iterator {
-        public:
-            using iterator_category = std::bidirectional_iterator_tag;
-            using value_type = std::tuple<N, N, E>;
-            using reference = std::tuple<const N&, const N&, const E&>;
-            using pointer = std::tuple<N*, N*, E*>;
-            using difference_type = int;
+            public:
+                using iterator_category = std::bidirectional_iterator_tag;
+                using value_type = std::tuple<N, N, E>;
+                using reference = std::tuple<const N&, const N&, const E&>;
+                using pointer = std::tuple<N*, N*, E*>;
+                using difference_type = int;
 
-            pointer operator->() const { return &(operator*()); }
+                pointer operator->() const { return &(operator*()); }
 
-            reference operator*() const;
+                reference operator*() const;
 
-            const_reverse_iterator& operator++();
+                const_reverse_iterator& operator++();
 
-            const const_reverse_iterator operator++(int);
+                const const_reverse_iterator operator++(int);
 
-            const_reverse_iterator& operator--();
+                const_reverse_iterator& operator--();
 
-            const const_reverse_iterator operator--(int);
+                const const_reverse_iterator operator--(int);
 
-            friend bool operator==(const const_reverse_iterator& lhs,
-                                   const const_reverse_iterator rhs) {
-                return (lhs.node_iter_ == rhs.node_iter_)
-                       && (lhs.edge_iter_ == rhs.edge_iter_)
-                       && (lhs.weight_iter_ == rhs.weight_iter_);
-            }
+                friend bool operator==(const const_reverse_iterator& lhs,
+                                       const const_reverse_iterator rhs) {
+                    return (lhs.node_iter_ == rhs.node_iter_)
+                           && (lhs.edge_iter_ == rhs.edge_iter_)
+                           && (lhs.weight_iter_ == rhs.weight_iter_);
+                }
 
-            friend bool operator!=(const const_reverse_iterator& lhs,
-                                   const const_reverse_iterator& rhs) {
-                return !(lhs == rhs);
-            }
+                friend bool operator!=(const const_reverse_iterator& lhs,
+                                       const const_reverse_iterator& rhs) {
+                    return !(lhs == rhs);
+                }
 
-        private:
-            friend class Graph;
+            private:
+                friend class Graph;
+                typename std::vector<std::shared_ptr<Node>>::iterator node_iter_;
+                const typename std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
+                const typename std::vector<std::shared_ptr<Node>>::iterator reverse_sentinel_;
+                typename std::map<N, std::vector<E>>::iterator edge_iter_;
+                typename std::vector<E>::iterator weight_iter_;
 
-            std::vector<std::shared_ptr<Node>>::iterator node_iter_;
-            const std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-            typename std::vector<N>::iterator edge_iter_;
-            typename std::vector<E>::iterator weight_iter_;
-
-            const_reverse_iterator(const decltype(node_iter_)& node_iter,
-                                   const decltype (node_sentinel_)& node_sentinel,
-                                   const decltype (edge_iter_)& edge_iter,
-                                   const decltype (weight_iter_) weight_iter):
-                    node_iter_{node_iter},
-                    node_sentinel_{node_sentinel},
-                    edge_iter_{edge_iter},
-                    weight_iter_{weight_iter} {}
+                const_reverse_iterator(const decltype(node_iter_)& node_iter,
+                                       const decltype (node_sentinel_)& node_sentinel,
+                                       const decltype (reverse_sentinel_)& reverse_sentinel_,
+                                       const decltype (edge_iter_)& edge_iter,
+                                       const decltype (weight_iter_) weight_iter):
+                        node_iter_{node_iter},
+                        node_sentinel_{node_sentinel},
+                        reverse_sentinel_{reverse_sentinel_},
+                        edge_iter_{edge_iter},
+                        weight_iter_{weight_iter} {}
         };
 
         class const_iterator {
-        public:
-            using iterator_category = std::bidirectional_iterator_tag;
-            using value_type = std::tuple<N, N, E>;
-            using reference = std::tuple<const N&, const N&, const E&>;
-            using pointer = std::tuple<N*, N*, E*>;
-            using difference_type = int;
+            public:
+                using iterator_category = std::bidirectional_iterator_tag;
+                using value_type = std::tuple<N, N, E>;
+                using reference = std::tuple<const N&, const N&, const E&>;
+                using pointer = std::tuple<N*, N*, E*>;
+                using difference_type = int;
 
-            pointer operator->() const { return &(operator*()); }
+                pointer operator->() const { return &(operator*()); }
 
-            reference operator*() const;
+                reference operator*() const;
 
-            const_iterator& operator++();
+                const_iterator& operator++();
 
-            const const_iterator operator++(int);
+                const const_iterator operator++(int);
 
-            const_iterator& operator--();
+                const_iterator& operator--();
 
-            const const_iterator operator--(int);
+                const const_iterator operator--(int);
 
-            friend bool operator==(const const_iterator& lhs,
-                                   const const_iterator rhs) {
-                return (lhs.node_iter_ == rhs.node_iter_)
-                       && (lhs.edge_iter_ == rhs.edge_iter_)
-                       && (lhs.weight_iter_ == rhs.weight_iter_);
-            }
+                friend bool operator==(const const_iterator& lhs,
+                                       const const_iterator rhs) {
+                    return (lhs.node_iter_ == rhs.node_iter_)
+                           && (lhs.edge_iter_ == rhs.edge_iter_)
+                           && (lhs.weight_iter_ == rhs.weight_iter_);
+                }
 
-            friend bool operator!=(const const_iterator& lhs,
-                                   const const_iterator& rhs) {
-                return !(lhs == rhs);
-            }
+                friend bool operator!=(const const_iterator& lhs,
+                                       const const_iterator& rhs) {
+                    return !(lhs == rhs);
+                }
 
-        private:
-            friend class Graph;
+            private:
+                friend class Graph;
 
-            std::vector<std::shared_ptr<Node>>::iterator node_iter_;
-            const std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-            typename std::vector<N>::iterator edge_iter_;
-            typename std::vector<E>::iterator weight_iter_;
+                typename std::vector<std::shared_ptr<Node>>::iterator node_iter_;
+                const typename std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
+                const typename std::vector<std::shared_ptr<Node>>::iterator reverse_sentinel_;
+                typename std::map<N, std::vector<E>>::iterator edge_iter_;
+                typename std::vector<E>::iterator weight_iter_;
 
-            const_iterator(const decltype(node_iter_)& node_iter,
-                           const decltype (node_sentinel_)& node_sentinel,
-                           const decltype (edge_iter_)& edge_iter,
-                           const decltype (weight_iter_) weight_iter):
-                    node_iter_{node_iter},
-                    node_sentinel_{node_sentinel},
-                    edge_iter_{edge_iter},
-                    weight_iter_{weight_iter} {}
+                const_iterator(const decltype(node_iter_)& node_iter,
+                                 const decltype (node_sentinel_)& node_sentinel,
+                                 const decltype (reverse_sentinel_)& reverse_sentinel_,
+                                 const decltype (edge_iter_)& edge_iter,
+                                 const decltype (weight_iter_) weight_iter):
+                      node_iter_{node_iter},
+                      node_sentinel_{node_sentinel},
+                      reverse_sentinel_{reverse_sentinel_},
+                      edge_iter_{edge_iter},
+                      weight_iter_{weight_iter} {}
         };
 
         // Graph Constructors
@@ -227,9 +232,9 @@ namespace gdwg {
 
                 os << NODE_END;
             }
+            return os;
         }
 
-        inline std::vector<std::shared_ptr<Node>> GetNodeList(){return nodeList_;};
 
         bool InsertEdge(const N&, const N&, const E&);
 
@@ -275,44 +280,49 @@ namespace gdwg {
 
         const_reverse_iterator rend() const { return crend(); }
 
-    private:
         class Node {
-        private:
-            N value_;
-            std::vector<std::weak_ptr<Node>> children_;
-            std::vector<std::weak_ptr<Node>> parents_;
-            std::map<N, std::vector<E>> edges_;
 
-        public:
-            Node();
 
-            Node(N value) : value_(value) {}
+            private:
+                N value_;
+                std::vector<std::weak_ptr<Node>> children_;
+                std::vector<std::weak_ptr<Node>> parents_;
+                std::map<N, std::vector<E>> edges_;
 
-            inline std::vector<std::weak_ptr<Node>> getChildren() {
-                return children_;
-            }
+            public:
+                Node();
 
-            inline std::vector<std::weak_ptr<Node>> getParents() {
-                return parents_;
-            }
+                Node(N value) : value_(value) {}
 
-            inline std::map<N, std::vector<E>> getEdges() { return edges_; }
+                inline std::vector<std::weak_ptr<Node>> getChildren() {
+                    return children_;
+                }
 
-            inline N getValue() {return value_;}
+                inline std::vector<std::weak_ptr<Node>> getParents() {
+                    return parents_;
+                }
 
-            inline void changeValue(N val) { value_ = val; }
+                inline std::map<N, std::vector<E>> getEdges() { return edges_; }
 
-            bool addEdge(const N&, const E&);
+                inline N getValue() {return value_;}
 
-            void addChild(std::weak_ptr<Node>);
+                inline void changeValue(N val) { value_ = val; }
 
-            void removeChild(const N&);
+                bool addEdge(const N&, const E&);
 
-            void addParent(std::weak_ptr<Node>);
+                void addChild(std::weak_ptr<Node>);
 
-            void removeParent(const N&);
+                void removeChild(const N&);
+
+                void addParent(std::weak_ptr<Node>);
+
+                void removeParent(const N&);
+
+
+
         };
 
+    private:
         std::vector<std::shared_ptr<Node>> nodeList_;
 
     };

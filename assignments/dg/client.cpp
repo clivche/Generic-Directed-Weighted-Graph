@@ -2,16 +2,16 @@
 #include <string>
 
 #include "assignments/dg/graph.h"
-//#include "assignments/dg/graph.cpp"
+#include "assignments/dg/graph.tpp"
 
 // Note: At the moment, there is no client.sampleout. Please do your own testing
 
 int main() {
   gdwg::Graph<std::string, int> g;
-//  g.InsertNode("hello");
-//  g.InsertNode("how");
-//  g.InsertNode("are");
-//  g.InsertNode("you?");
+  g.InsertNode("hello");
+  g.InsertNode("how");
+  g.InsertNode("are");
+  g.InsertNode("you?");
 //
 //  g.InsertEdge("hello", "how", 5);
 //  g.InsertEdge("hello", "are", 8);

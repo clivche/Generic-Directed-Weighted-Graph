@@ -143,58 +143,60 @@ namespace gdwg {
         Graph<N, E>& operator=(gdwg::Graph<N, E>&& g);
 
         friend bool operator==(const Graph& g1, const Graph& g2) {
-
             // check nodelist size
             if (g1.nodeList_.size() != g2.nodeList_.size()) {
                 return false;
-
             }
 
             int max = g1.nodeList_.size();
             for (int counter = 0; counter < max; counter++) {
                 // check node values
                 if (g1.nodeList_[counter]->getValue() != g2
-                .nodeList_[counter]->getValue()) {
+                        .nodeList_[counter]->getValue()) {
                     return false;
                 }
             }
-
 
             for (int counter = 0; counter < max; counter++) {
-                std::map<N, std::vector<E>> e1 = *g1.nodeList_[counter]
-                        .getEdges();
-                std::map<N, std::vector<E>> e2 = *g2.nodeList_[counter]
-                        .getEdges();
+                Node n1 = *g1.nodeList_[counter];
+                Node n2 = *g2.nodeList_[counter];
 
-                // check size of children vector
-                if (e1.size() != e2.size()) {
-                    return false;
-                }
+                std::vector<std::weak_ptr<Node>> children_1 = n1.getChildren();
+                std::map<N, std::vector<E>> edge_map_1= n1.getEdges();
+                std::vector<N> avail_dst_1;
 
-                // check if child values are all the same
-                for (int cc = 0; cc < e1.size(); cc++) {
-                    std::pair<N, std::vector<E>> child1 = *e1[cc];
-                    std::pair<N, std::vector<E>> child2 = *e2[cc];
+                std::vector<std::weak_ptr<Node>> children_2 = n1.getChildren();
+                std::map<N, std::vector<E>> edge_map_2= n1.getEdges();
+                std::vector<N> avail_dst_2;
 
-                    if (child1.first != child2.first) {
-                        return false;
+                for (auto it = children_1.begin(); it != children_1.end();
+                     ++it) {
+                    if (auto childLock = it->lock()) {
+                        avail_dst_1.push_back(childLock->getValue());
                     }
                 }
 
-                // check if edges are all the same weight
-                for (int cc = 0; cc < e1.size(); cc++) {
-                    std::pair<N, std::vector<E>> child1 = *e1[cc];
-                    std::pair<N, std::vector<E>> child2 = *e2[cc];
+                for (auto it = children_2.begin(); it != children_2.end();
+                     ++it) {
+                    if (auto childLock = it->lock()) {
+                        avail_dst_2.push_back(childLock->getValue());
+                    }
+                }
 
-                    std::vector<E> ce1 = child1.second;
-                    std::vector<E> ce2 = child2.second;
+                if (avail_dst_1 != avail_dst_2) {
+                    return false;
+                }
 
-                    if (ce1 != ce2) {
+                for (auto dst = avail_dst_1.begin(); dst != avail_dst_1.end();
+                     ++dst) {
+                    typename std::vector<E> weights_1 = edge_map_1[*dst];
+                    typename std::vector<E> weights_2 = edge_map_2[*dst];
+
+                    if (weights_1 != weights_2) {
                         return false;
                     }
                 }
             }
-
             return true;
         }
 
@@ -238,7 +240,6 @@ namespace gdwg {
             }
             return os;
         }
-
 
         bool InsertEdge(const N&, const N&, const E&);
 

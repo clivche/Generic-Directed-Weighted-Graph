@@ -1,5 +1,6 @@
 #include "assignments/dg/graph.h"
 #include <stdexcept>
+#include <algorithm>
 
 template<typename X, typename Predicate>
 std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2,
@@ -155,7 +156,8 @@ void gdwg::Graph<N, E>::Node::UpdateEdges(std::vector<E> weights, N newNode,
                                           N oldNode) {
 
     this->edges_[newNode] = weights;
-    this->edges_.erase(this->edges_.find(oldNode));
+    auto old_key_it = this->edges_.find(oldNode);
+    this->edges_.erase(old_key_it);
 }
 
 
@@ -170,6 +172,7 @@ void gdwg::Graph<N, E>::Node::UpdateEdges(std::vector<E> weights, N newNode,
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1,
                          typename std::vector<N>::const_iterator c2) {
+    // TODO: can't sort const_iterator
     sort(c1,c2);
     for (auto &it = c1; it != c2; it++) {
         // Check for duplicates in initaliser vector
@@ -237,6 +240,7 @@ gdwg::Graph<N, E>::Graph(
 
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(std::initializer_list<N> args) {
+    // TODO: can't sort initializer list
     sort(args.begin(), args.end());
     for (auto &it = args.begin(); it != args.begin(); it++) {
         // Check for duplicates in initaliser vector
@@ -441,13 +445,15 @@ bool gdwg::Graph<N, E>::Replace(const N &oldData, const N &newData) {
         auto parents = (*old)->getParents();
         for (auto it = parents.begin(); it != parents.end(); ++it) {
             if (auto sharedParent = it->lock()) {
+
                 auto edges = sharedParent->getEdges();
                 std::vector<E> newWeightVector;
+
                 for (const auto& edge : edges[oldData]) {
                     newWeightVector.push_back(edge);
                 }
 
-                (*old)->UpdateEdges(newWeightVector, newData, oldData);
+                sharedParent->UpdateEdges(newWeightVector, newData, oldData);
             }
         }
         return true;
@@ -469,8 +475,8 @@ template<typename N, typename E>
 void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
 
     // Find shared_ptr to nodes within nodeList_
-    auto &oldNode = nodeList_.end();
-    auto &newNode = nodeList_.end();
+    auto oldNode = nodeList_.end();
+    auto newNode = nodeList_.end();
     for (const auto &node : nodeList_) {
         if (node->getValue() == newData) {
             newNode = node;
@@ -487,7 +493,7 @@ void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
     }
 
     // Handle Parents
-    for (const auto &parent : oldNode->getParents()) {
+    for (const auto &parent : (*oldNode)->getParents()) {
         if (const auto &parentShared = parent->lock()) {
 
             // Alter parent->children_
@@ -507,7 +513,7 @@ void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
     }
 
     // Handle Children
-    for (const auto &child : oldNode->getChildren()) {
+    for (const auto &child : (*oldNode)->getChildren()) {
         if (const auto &childShared = child.lock()) {
             // Alter child->parent_
             //     Remove parent
@@ -521,8 +527,8 @@ void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
     }
 
     // Handle Edges
-    auto newEdges = newNode->getEdges();
-    auto oldEdges = oldNode->getEdges();
+    auto newEdges = (*newNode)->getEdges();
+    auto oldEdges = (*oldNode)->getEdges();
     for (const auto&[key, val] : oldEdges) {
         newEdges[key] = mergeSorted(newEdges[key], val);
     }
@@ -566,10 +572,10 @@ bool gdwg::Graph<N, E>::IsConnected(const N &src, const N &dst) {
     auto srcNode = nodeList_.end();
     bool dstFound = false;
     for (auto it = nodeList_.begin(); it != nodeList_.end(); it++) {
-        if (it->getValue() == src) {
+        if ((*it)->getValue() == src) {
             srcNode = it;
         }
-        if (it->getValue() == dst) {
+        if ((*it)->getValue() == dst) {
             dstFound = true;
         }
     }
@@ -579,8 +585,8 @@ bool gdwg::Graph<N, E>::IsConnected(const N &src, const N &dst) {
     }
 
     // Check srcNode edge list
-    auto edges = srcNode->getEdges();
-    if (!edges[dst].empty) {
+    auto edges = (*srcNode)->getEdges();
+    if (!edges[dst].empty()) {
         return true;
     }
     return false;
@@ -610,12 +616,15 @@ template<typename N, typename E>
 std::vector<N> gdwg::Graph<N, E>::GetConnected(const N &src) {
     std::vector<N> res;
     for (auto it = nodeList_.begin(); it != nodeList_.end(); it++) {
-        if (it->getValue() == src) {
-            for (const auto &dst : it->getChildren()) {
+        if ((*it)->getValue() == src) {
+
+            auto children = (*it)->getChildren();
+            for (auto dst = children.begin(); dst != children.end(); ++dst) {
                 if (auto dstShared = dst->lock()) {
-                    res.push_back(dstShared.getValue());
+                    res.push_back(dstShared->getValue());
                 }
             }
+
             return res;
         }
     }

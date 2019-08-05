@@ -1,9 +1,16 @@
+/**
+ * Copyright [2019] Clive Chen, Vaishnavi Bapat
+ * zid - z5166040, z5075858
+ */
 #ifndef ASSIGNMENTS_DG_GRAPH_H_
 #define ASSIGNMENTS_DG_GRAPH_H_
 
 #include <vector>
 #include <map>
 #include <memory>
+#include <string>
+#include <sstream>
+#include <iostream>
 
 namespace gdwg {
 
@@ -151,8 +158,8 @@ namespace gdwg {
             int max = g1.nodeList_.size();
             for (int counter = 0; counter < max; counter++) {
                 // check node values
-                if (g1.nodeList_[counter]->getValue() != g2
-                        .nodeList_[counter]->getValue()) {
+                if (g1.nodeList_[counter]->GetValue() != g2
+                        .nodeList_[counter]->GetValue()) {
                     return false;
                 }
             }
@@ -161,25 +168,25 @@ namespace gdwg {
                 Node n1 = *g1.nodeList_[counter];
                 Node n2 = *g2.nodeList_[counter];
 
-                std::vector<std::weak_ptr<Node>> children_1 = n1.getChildren();
-                std::map<N, std::vector<E>> edge_map_1= n1.getEdges();
+                std::vector<std::weak_ptr<Node>> children_1 = n1.GetChildren();
+                std::map<N, std::vector<E>> edge_map_1= n1.GetEdges();
                 std::vector<N> avail_dst_1;
 
-                std::vector<std::weak_ptr<Node>> children_2 = n1.getChildren();
-                std::map<N, std::vector<E>> edge_map_2= n1.getEdges();
+                std::vector<std::weak_ptr<Node>> children_2 = n1.GetChildren();
+                std::map<N, std::vector<E>> edge_map_2= n1.GetEdges();
                 std::vector<N> avail_dst_2;
 
                 for (auto it = children_1.begin(); it != children_1.end();
                      ++it) {
                     if (auto childLock = it->lock()) {
-                        avail_dst_1.push_back(childLock->getValue());
+                        avail_dst_1.push_back(childLock->GetValue());
                     }
                 }
 
                 for (auto it = children_2.begin(); it != children_2.end();
                      ++it) {
                     if (auto childLock = it->lock()) {
-                        avail_dst_2.push_back(childLock->getValue());
+                        avail_dst_2.push_back(childLock->GetValue());
                     }
                 }
 
@@ -215,16 +222,16 @@ namespace gdwg {
 
             for (int counter = 0; counter < max; counter++) {
                 Node n = *g.nodeList_[counter];
-                os << n.getValue() << NODE_START;
+                os << n.GetValue() << NODE_START;
 
-                std::vector<std::weak_ptr<Node>> children = n.getChildren();
-                std::map<N, std::vector<E>> edge_map= n.getEdges();
+                std::vector<std::weak_ptr<Node>> children = n.GetChildren();
+                std::map<N, std::vector<E>> edge_map= n.GetEdges();
                 std::vector<N> avail_dst;
 
                 for (auto it = children.begin(); it != children.end(); ++it) {
                     if (auto childLock = it->lock()) {
-                        avail_dst.push_back(childLock->getValue());
-//                        std::cout<<childLock->getValue();
+                        avail_dst.push_back(childLock->GetValue());
+//                        std::cout<<childLock->GetValue();
                     }
                 }
 
@@ -284,6 +291,9 @@ namespace gdwg {
         inline const_reverse_iterator rbegin() const { return crbegin(); }
 
         inline const_reverse_iterator rend() const { return crend(); }
+        
+        inline std::vector<std::shared_ptr<Node>> GetNodeList() const { return 
+        this->nodeList_; }
 
         class Node {
 
@@ -299,34 +309,32 @@ namespace gdwg {
 
                 Node(N value) : value_(value) {}
 
-                inline std::vector<std::weak_ptr<Node>> getChildren() {
+                inline std::vector<std::weak_ptr<Node>> GetChildren() {
                     return children_;
                 }
 
-                inline std::vector<std::weak_ptr<Node>> getParents() {
+                inline std::vector<std::weak_ptr<Node>> GetParents() {
                     return parents_;
                 }
 
-                inline std::map<N, std::vector<E>> getEdges() { return edges_; }
+                inline std::map<N, std::vector<E>> GetEdges() { return edges_; }
 
-                inline N getValue() {return value_;}
+                inline N GetValue() {return value_;}
 
-                inline void changeValue(N val) { value_ = val; }
+                inline void ChangeValue(N val) { value_ = val; }
 
                 void UpdateEdges(std::vector<E> weights, N newNode, N
                 oldNode);
 
-                bool addEdge(const N&, const E&);
+                bool AddEdge(const N&, const E&);
 
-                void addChild(std::weak_ptr<Node>);
+                void AddChild(std::weak_ptr<Node>);
 
-                void removeChild(const N&);
+                void RemoveChild(const N&);
 
-                void addParent(std::weak_ptr<Node>);
+                void AddParent(std::weak_ptr<Node>);
 
-                void removeParent(const N&);
-
-
+                void RemoveParent(const N&);
 
         };
 

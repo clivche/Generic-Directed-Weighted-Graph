@@ -7,31 +7,58 @@
 #include <stdexcept>
 #include <algorithm>
 
-template<typename X, typename Predicate>
-std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2,
-                           Predicate f = [](X x) { return x; }) {
-    auto &it1 = v1.begin();
-    auto &it2 = v2.begin();
+//template<typename X, typename Predicate>
+//std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2,
+//                           Predicate f = [](X x) { return x; }) {
+//    auto &it1 = v1.begin();
+//    auto &it2 = v2.begin();
+//    std::vector<X> result;
+//    while (it1 != v1.end() || it2 != v2.end()) {
+//        if (it1 == v1.end()) {
+//            result.push(*it2++);
+//        }
+//        if (it2 == v2.end()) {
+//            result.push(*it1++);
+//        }
+//        if (f(*it1) < f(*it2)) {
+//            result.push(*it1++);
+//        } else if (f(*it2) < f(*it1)) {
+//            result.push(*it2++);
+//        } else {
+//            result.push(*it1++);
+//            it2++;
+//        }
+//    }
+//    return result;
+//}
+template<typename X>
+std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2) {
+    auto it1 = v1.begin();
+    auto it2 = v2.begin();
     std::vector<X> result;
     while (it1 != v1.end() || it2 != v2.end()) {
         if (it1 == v1.end()) {
-            result.push(*it2++);
-        }
-        if (it2 == v2.end()) {
-            result.push(*it1++);
-        }
-        if (f(*it1) < f(*it2)) {
-            result.push(*it1++);
-        } else if (f(*it2) < f(*it1)) {
-            result.push(*it2++);
+            result.push_back(*it2);
+            ++it2;
+        } else if (it2 == v2.end()) {
+            result.push_back(*it1);
+            ++it1;
         } else {
-            result.push(*it1++);
-            it2++;
+            if (*it1 < *it2) {
+                result.push_back(*it1);
+                ++it1;
+            } else if (*it2 < *it1) {
+                result.push_back(*it2);
+                ++it2;
+            } else {
+                result.push_back(*it1);
+                ++it1;
+                ++it2;
+            }
         }
     }
     return result;
 }
-
 
 // Node Functions
 
@@ -42,11 +69,11 @@ std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2,
  */
 template<typename N, typename E>
 void gdwg::Graph<N, E>::Node::RemoveChild(const N &n) {
-    auto &children = GetChildren();
-    for (const auto &child : children) {
-        if (auto &childShared = child->lock()) {
+    auto children = GetChildren();
+    for (auto it = children.begin(); it != children.end(); ++it) {
+        if (auto childShared = it->lock()) {
             if (childShared->GetValue() == n) {
-                children->erase(child);
+                children.erase(it);
                 break;
             }
         }
@@ -61,11 +88,11 @@ void gdwg::Graph<N, E>::Node::RemoveChild(const N &n) {
  */
 template<typename N, typename E>
 void gdwg::Graph<N, E>::Node::RemoveParent(const N &n) {
-    auto &parents = GetParents();
-    for (const auto &parent : parents) {
-        if (auto &parentShared = parent->lock()) {
+    auto parents = GetParents();
+    for (auto it = parents.begin(); it != parents.end(); ++it) {
+        if (auto parentShared = it->lock()) {
             if (parentShared->GetValue() == n) {
-                parents->erase(parent);
+                parents.erase(it);
                 break;
             }
         }
@@ -81,22 +108,26 @@ void gdwg::Graph<N, E>::Node::RemoveParent(const N &n) {
 template<typename N, typename E>
 void gdwg::Graph<N, E>::Node::AddChild(std::weak_ptr<Node> dst) {
 
-    auto nextChild = children_.begin();
     bool found = false;
     auto dstLock = dst.lock();
-    for (auto it = children_.begin(); it != children_.end(); it++) {
+    auto it = children_.begin();
+    while (it != children_.end()) {
         if (auto child = it->lock()) {
-            if (dstLock->GetValue() < child->GetValue()) {
-                nextChild = it;
-            } else if (dstLock->GetValue() == child->GetValue()) {
+            if (dstLock->GetValue() == child->GetValue()) {
                 found = true;
+                break;
+            }
+            else if (dstLock->GetValue() > child->GetValue()) {
+                it++;
+            }
+            else {
                 break;
             }
         }
     }
 
     if (!found) {
-        children_.insert(nextChild, dst);
+        children_.insert(it, dst);
     }
     return;
 }
@@ -109,15 +140,19 @@ void gdwg::Graph<N, E>::Node::AddChild(std::weak_ptr<Node> dst) {
  */
 template<typename N, typename E>
 bool gdwg::Graph<N, E>::Node::AddEdge(const N &dst, const E &w) {
-    auto nextEdge = edges_[dst].begin();
-    for (auto it = edges_[dst].begin(); it != edges_[dst].end(); it++) {
+    auto it = edges_[dst].begin();
+    while (it != edges_[dst].end()) {
         if (w > *it) {
-            nextEdge = it;
-        } else if (w == *it) {
-            return false;
+            it++;
+        }
+        else if (w == *it) {
+          return false;
+        }
+        else {
+            break;
         }
     }
-    edges_[dst].insert(nextEdge, w);
+    edges_[dst].insert(it, w);
     std::sort(edges_[dst].begin(), edges_[dst].end());
     return true;
 }
@@ -487,51 +522,125 @@ template<typename N, typename E>
 void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
 
     // Find shared_ptr to nodes within nodeList_
-    auto oldNode = nodeList_.end();
-    auto newNode = nodeList_.end();
-    for (const auto &node : nodeList_) {
-        if (node->GetValue() == newData) {
-            newNode = node;
+    auto oldPtr = nodeList_.end();
+    auto newPtr = nodeList_.end();
+    for (auto it = nodeList_.begin(); it != nodeList_.end(); it++) {
+        if ((*it)->GetValue() == newData) {
+            newPtr = it;
         }
-        if (node->GetValue() == oldData) {
-            oldNode = node;
+        if ((*it)->GetValue() == oldData) {
+            oldPtr = it;
         }
     }
 
     // Exception Handling
-    if (oldNode == nodeList_.end() || newNode == nodeList_.end()) {
+    if (oldPtr == nodeList_.end() || newPtr == nodeList_.end()) {
         throw std::runtime_error(
                 "Cannot call Graph::MergeReplace on old or new data if they don't exist in the graph");
     }
+    auto oldNode = *oldPtr;
+    auto newNode = *newPtr;
 
-    // Handle Parents
-    for (const auto &parent : (*oldNode)->GetParents()) {
-        if (const auto &parentShared = parent->lock()) {
+    // Handle Parents of oldNode
+    auto parentList = oldNode->GetParents();
+
+std::cout << "parentList of " << oldNode->GetValue()<<": ";
+for (const auto& item : parentList) {
+    const auto parentShared = item.lock();
+    std::cout << (parentShared)->GetValue() << ' ';
+}
+std::cout << '\n';
+
+    for (auto it = parentList.begin(); it != parentList.end(); it++) {
+        if (const auto parentShared = it->lock()) {
+std::cout << "----------------- " <<(parentShared)->GetValue() << " -----------------\n";
+std::cout << "Children of " << (parentShared)->GetValue() <<" BEFORE: ";
+auto CofP = parentShared->GetChildren();
+for (const auto& item : CofP) {
+if (auto itemlock = item.lock()) {
+std::cout << itemlock->GetValue() << ' ';
+}
+}
+std::cout << '\n';
 
             // Alter parent->children_
-            //     Add child
-            parentShared->AddChild(std::weak_ptr<Node>(*newNode));
+            //     Add newNode child
+            parentShared->AddChild(std::weak_ptr<Node>(newNode));
             //     Remove child
             parentShared->RemoveChild(oldData);
 
+std::cout << "Children of " << (parentShared)->GetValue() <<" AFTER: ";
+CofP = parentShared->GetChildren();
+for (const auto& item : CofP) {
+if (auto itemlock = item.lock()) {
+std::cout << itemlock->GetValue() << ' ';
+}
+}
+std::cout << '\n';
+
             // Merge/Replace parent->edges_
-            auto &pEdge = parentShared->GetEdges();
+            auto pEdge = parentShared->GetEdges();
+
+std::cout << "Before Merge:\n";
+std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
+for (const auto& item : pEdge[oldData]) {
+std::cout << item << ' ';
+}
+std::cout << '\n';
+
+std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
+for (const auto& item : pEdge[newData]) {
+std::cout << item << ' ';
+}
+std::cout << '\n';
+
             pEdge[newData] = mergeSorted(pEdge[oldData], pEdge[newData]);
-            pEdge[oldData]->clear();
+            pEdge[oldData].clear();
+
+std::cout << "After Merge and Clear:\n";
+std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
+for (const auto& item : pEdge[oldData]) {
+std::cout << item << ' ';
+}
+std::cout << '\n';
+
+std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
+for (const auto& item : pEdge[newData]) {
+std::cout << item << ' ';
+}
+std::cout << '\n';
+
+std::cout << "Parents of newNode before add: ";
+auto PofNN = newNode->GetParents();
+for (const auto& item : PofNN) {
+    if (auto itemlock = item.lock()) {
+        std::cout << itemlock->GetValue() << ' ';
+    }
+}
+std::cout << '\n';
 
             // Add parent to newNode
-            newNode->AddParent(parent);
+            newNode->AddParent(*it);
+
+std::cout << "Parents of newNode after add: ";
+PofNN = newNode->GetParents();
+for (const auto& item : PofNN) {
+    if (auto itemlock = item.lock()) {
+        std::cout << itemlock->GetValue() << ' ';
+    }
+}
+std::cout << '\n';
         }
     }
 
-    // Handle Children
-    for (const auto &child : (*oldNode)->GetChildren()) {
-        if (const auto &childShared = child.lock()) {
+    // Handle Children of oldNode
+    for (const auto child : oldNode->GetChildren()) {
+        if (const auto childShared = child.lock()) {
             // Alter child->parent_
             //     Remove parent
             childShared->RemoveParent(oldData);
             //     Add parent
-            childShared->AddParent(std::weak_ptr<Node>(*newNode));
+            childShared->AddParent(std::weak_ptr<Node>(newNode));
 
             // Add child to newNode
             newNode->AddChild(child);
@@ -539,13 +648,14 @@ void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
     }
 
     // Handle Edges
-    auto newEdges = (*newNode)->GetEdges();
-    auto oldEdges = (*oldNode)->GetEdges();
-    for (const auto&[key, val] : oldEdges) {
-        newEdges[key] = mergeSorted(newEdges[key], val);
+    auto newEdges = newNode->GetEdges();
+    auto oldEdges = oldNode->GetEdges();
+    for (auto it = oldEdges.begin(); it != oldEdges.end(); it++) {
+        auto newEdgeVector = mergeSorted(newEdges[it->first], it->second);
+        newEdges[it->first] = newEdgeVector;
     }
 
-    nodeList_.erase(oldNode);
+    nodeList_.erase(oldPtr);
 }
 
 /**

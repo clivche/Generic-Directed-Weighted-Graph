@@ -338,9 +338,6 @@ namespace gdwg {
 
         };
 
-        std::vector<N> dummyN;
-        std::vector<E> dummyE;
-
     private:
         std::vector<std::shared_ptr<Node>> nodeList_;
 

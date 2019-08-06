@@ -21,6 +21,7 @@ int main() {
     g.InsertEdge("a", "b", 1);
     g.InsertEdge("a", "b", 10);
     g.InsertEdge("c", "b", 3);
+    g.InsertEdge("b", "b", 2);
 
 //    g.InsertEdge("a", "d", 4);
 //    g.InsertEdge("a", "d", 50);
@@ -28,7 +29,7 @@ int main() {
 
     std::cout << g << '\n';
 
-    std::cout << "MergeReplace Time" << '\n';
+    std::cout << "MergeReplace b with d" << '\n';
 
     g.MergeReplace("b", "d");
 

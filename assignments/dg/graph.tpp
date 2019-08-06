@@ -553,15 +553,28 @@ std::cout << '\n';
 
     for (auto it = parentList.begin(); it != parentList.end(); it++) {
         if (const auto parentShared = it->lock()) {
-std::cout << "----------------- " <<(parentShared)->GetValue() << " -----------------\n";
-std::cout << "Children of " << (parentShared)->GetValue() <<" BEFORE: ";
-auto CofP = parentShared->GetChildren();
-for (const auto& item : CofP) {
-if (auto itemlock = item.lock()) {
-std::cout << itemlock->GetValue() << ' ';
-}
-}
-std::cout << '\n';
+            if (parentShared->GetValue() == oldData) {
+                newNode->AddChild(std::weak_ptr<Node>(newNode));
+                auto pEdge = parentShared->GetEdges();
+                for (const auto& w : pEdge[oldData]) {
+                    this->InsertEdge(newData, newData, w);
+                }
+                continue;
+            }
+
+            
+//std::cout << "----------------- " <<(parentShared)->GetValue() << " -----------------\n";
+//std::cout << "Children of " << (parentShared)->GetValue() <<" BEFORE: ";
+//auto CofP = parentShared->GetChildren();
+//for (const auto& item : CofP) {
+//if (auto itemlock = item.lock()) {
+//std::cout << itemlock->GetValue() << ' ';
+//}
+//}
+//std::cout << '\n';
+
+
+
 
             // Alter parent->children_
             //     Add newNode child
@@ -569,67 +582,84 @@ std::cout << '\n';
             //     Remove child
             parentShared->RemoveChild(oldData);
 
-std::cout << "Children of " << (parentShared)->GetValue() <<" AFTER: ";
-CofP = parentShared->GetChildren();
-for (const auto& item : CofP) {
-if (auto itemlock = item.lock()) {
-std::cout << itemlock->GetValue() << ' ';
-}
-}
-std::cout << '\n';
+//std::cout << "Children of " << (parentShared)->GetValue() <<" AFTER: ";
+//auto newCofP = parentShared->GetChildren();
+//for (auto it2 = newCofP.begin(); it2 != newCofP.end(); it2++) {
+//if (auto itemlock = it2->lock()) {
+//std::cout << itemlock->GetValue() << ' ';
+//}
+//}
+//std::cout << '\n';
 
             // Merge/Replace parent->edges_
             auto pEdge = parentShared->GetEdges();
 
-std::cout << "Before Merge:\n";
-std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
-for (const auto& item : pEdge[oldData]) {
-std::cout << item << ' ';
-}
-std::cout << '\n';
+//std::cout << "Before Merge:\n";
+//std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
+//for (const auto& item : pEdge[oldData]) {
+//std::cout << item << ' ';
+//}
+//std::cout << '\n';
+//
+//std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
+//for (const auto& item : pEdge[newData]) {
+//std::cout << item << ' ';
+//}
+//std::cout << '\n';
+//
 
-std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
-for (const auto& item : pEdge[newData]) {
-std::cout << item << ' ';
-}
-std::cout << '\n';
 
-            pEdge[newData] = mergeSorted(pEdge[oldData], pEdge[newData]);
-            pEdge[oldData].clear();
+            auto mergedWeights = mergeSorted(pEdge[oldData], pEdge[newData]);
 
-std::cout << "After Merge and Clear:\n";
-std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
-for (const auto& item : pEdge[oldData]) {
-std::cout << item << ' ';
-}
-std::cout << '\n';
+            for (const auto& w : mergedWeights) {
+                this->InsertEdge(parentShared->GetValue(), newData, w);
+            }
 
-std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
-for (const auto& item : pEdge[newData]) {
-std::cout << item << ' ';
-}
-std::cout << '\n';
+//            std::cout << "Merge Result: ";
+//            for (const auto& t : temp) {
+//                std::cout << t << ' ';
+//            }
+//            std::cout << '\n';
+//
+//            pEdge[newData].clear();
+//            pEdge.insert({newData, temp});
+//            pEdge[oldData].clear();
 
-std::cout << "Parents of newNode before add: ";
-auto PofNN = newNode->GetParents();
-for (const auto& item : PofNN) {
-    if (auto itemlock = item.lock()) {
-        std::cout << itemlock->GetValue() << ' ';
-    }
-}
-std::cout << '\n';
+            pEdge = parentShared->GetEdges();
+
+            //std::cout << "After Merge and Clear:\n";
+//std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
+//for (const auto& item : pEdge[oldData]) {
+//std::cout << item << ' ';
+//}
+//std::cout << '\n';
+//
+//std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
+//for (const auto& item : pEdge[newData]) {
+//std::cout << item << ' ';
+//}
+//std::cout << '\n';
+//
+//std::cout << "Parents of newNode before add: ";
+//auto PofNN = newNode->GetParents();
+//for (const auto& item : PofNN) {
+//    if (auto itemlock = item.lock()) {
+//        std::cout << itemlock->GetValue() << ' ';
+//    }
+//}
+//std::cout << '\n';
 
             // Add parent to newNode
             newNode->AddParent(*it);
 
-std::cout << "Parents of newNode after add: ";
-PofNN = newNode->GetParents();
-for (const auto& item : PofNN) {
-    if (auto itemlock = item.lock()) {
-        std::cout << itemlock->GetValue() << ' ';
-    }
-}
-std::cout << '\n';
+//std::cout << "Parents of newNode after add: ";
+//PofNN = newNode->GetParents();
+//for (const auto& item : PofNN) {
+//    if (auto itemlock = item.lock()) {
+//        std::cout << itemlock->GetValue() << ' ';
+//    }
+//}
+//std::cout << '\n';
         }
     }
 

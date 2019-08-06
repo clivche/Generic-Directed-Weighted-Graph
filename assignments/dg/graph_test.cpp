@@ -29,6 +29,22 @@ SCENARIO("Default constructor") {
     }
 }
 
+SCENARIO("Vector iterator constructor") {
+    WHEN("the vector iterator constructor is used") {
+        std::vector<std::string> v1{"c", "e", "a", "d", "b"};
+        gdwg::Graph<std::string, int> g{v1.begin(), v1.end()};
+
+        THEN("the result is a correctly initialised sorted graph") {
+            gdwg::Graph<std::string, int> expected;
+            expected.InsertNode("a");
+            expected.InsertNode("b");
+            expected.InsertNode("c");
+            expected.InsertNode("d");
+            expected.InsertNode("e");
+            CHECK((g == expected));
+        }
+    }
+}
 
 /***************************/
 /**  == Node Insertion == **/
@@ -267,7 +283,104 @@ SCENARIO("Insert edge with non-existent dst") {
 /*********************/
 
 // TODO comparing graphs that have had nodes deleted
+SCENARIO("Evaluate the equality of two graphs that have had nodes deleted") {
+    GIVEN("two graphs") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("a");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+
+        // c is interconnected with rest of graph
+        g.InsertNode("c");
+        g.InsertEdge("a", "c", 999);
+        g.InsertEdge("a", "c", -1);
+        g.InsertEdge("c", "a", 3);
+        g.InsertEdge("c", "c", 3);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "c", 12);
+        g.InsertEdge("d", "c", 1);
+        g.DeleteNode("c");
+
+        gdwg::Graph<std::string, int> g2;
+        g2.InsertNode("a");
+        g2.InsertNode("d");
+        g2.InsertNode("b");
+        g2.InsertEdge("a", "b", 10);
+        g2.InsertEdge("a", "b", 1);
+        g2.InsertEdge("a", "d", 4);
+        g2.InsertEdge("a", "d", 50);
+        g2.InsertEdge("b", "b", 2);
+        g2.InsertEdge("d", "b", 23);
+        g2.InsertEdge("d", "d", 5);
+
+        // x,y,z are disconnected with rest of graph
+        g2.InsertNode("x");
+        g2.InsertNode("y");
+        g2.InsertNode("z");
+        g2.InsertEdge("x", "y", 1);
+        g2.InsertEdge("y", "y", 9);
+        g2.InsertEdge("z", "x", 9);
+        g2.InsertEdge("z", "y", 22);
+        g2.DeleteNode("x");
+        g2.DeleteNode("y");
+        g2.DeleteNode("z");
+
+        THEN("we can check their equality") {
+            bool res = (g == g2);
+            CHECK(res == true);
+        }
+    }
+}
+
+
 // TODO comparing graphs that have been created in 2 different ways
+SCENARIO("Evaluate the equality of two differently constructed graphs") {
+    GIVEN("two graphs") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+
+        gdwg::Graph<std::string, int> g2;
+        g2.InsertNode("b");
+        g2.InsertEdge("b", "b", 2);
+        g2.InsertNode("a");
+        g2.InsertEdge("a", "b", 10);
+        g2.InsertEdge("a", "b", 1);
+        g2.InsertNode("c");
+        g2.InsertEdge("c", "b", 3);
+        g2.InsertEdge("b", "c", 2);
+        g2.InsertNode("d");
+        g2.InsertEdge("a", "d", 4);
+        g2.InsertEdge("a", "d", 50);
+        g2.InsertEdge("d", "b", 23);
+        g2.InsertEdge("d", "d", 5);
+
+        THEN("we can check their equality") {
+            bool res = (g == g2);
+            CHECK(res == true);
+        }
+    }
+}
 
 SCENARIO("Evaluate the equality of two graph") {
     GIVEN("two graphs") {
@@ -645,9 +758,32 @@ SCENARIO("Replace a non-existent node") {
 /*************************/
 /**  == MergeReplace == **/
 /*************************/
-
-//TODO: fix function
-
+SCENARIO("Replace a non-existent node") {
+    GIVEN("a graph") {
+//        gdwg::Graph<std::string, int> g;
+//
+//        g.InsertNode("c");
+//        g.InsertNode("d");
+//        g.InsertNode("b");
+//        g.InsertNode("a");
+//
+//        g.InsertEdge("a", "b", 10);
+//        g.InsertEdge("a", "b", 1);
+//        g.InsertEdge("a", "d", 4);
+//        g.InsertEdge("a", "d", 50);
+//        g.InsertEdge("b", "b", 2);
+//        g.InsertEdge("c", "b", 3);
+//        g.InsertEdge("b", "c", 2);
+//        g.InsertEdge("d", "b", 23);
+//        g.InsertEdge("d", "d", 5);
+//
+//        std::cout << g << '\n';
+//
+//        std::cout << "MergeReplace" << '\n';
+//
+//        g.MergeReplace("d", "a");
+    }
+}
 /***************************/
 /**  == Printing Graph == **/
 /***************************/

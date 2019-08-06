@@ -9,22 +9,23 @@
 int main() {
   gdwg::Graph<std::string, int> g;
 
-    g.InsertNode("c");
-    g.InsertNode("d");
 //    g.InsertNode("h");
 //    g.InsertNode("g");
-    g.InsertNode("b");
 //    g.InsertNode("f");
 //    g.InsertNode("e");
+    g.InsertNode("c");
+    g.InsertNode("d");
+    g.InsertNode("b");
     g.InsertNode("a");
 
-    g.InsertEdge("a", "b", 1);
     g.InsertEdge("a", "b", 10);
-    g.InsertEdge("c", "b", 3);
-    g.InsertEdge("b", "b", 2);
-
+    g.InsertEdge("a", "b", 1);
     g.InsertEdge("a", "d", 4);
     g.InsertEdge("a", "d", 50);
+    g.InsertEdge("b", "b", 2);
+    g.InsertEdge("c", "b", 3);
+    g.InsertEdge("b", "c", 2);
+    g.InsertEdge("d", "b", 23);
     g.InsertEdge("d", "d", 5);
 
     std::cout << g << '\n';
@@ -32,7 +33,7 @@ int main() {
     std::cout << "MergeReplace" << '\n';
 
     g.MergeReplace("d", "a");
-
+//    g.Replace("b", "p");
 //    std::vector<int> v1{1,2,4,8,10};
 //    std::vector<int> v2{2,3,5,6,10,17};
 //    auto result = mergeSorted(v1, v2);
@@ -59,16 +60,9 @@ int main() {
 //
 //    g.Replace("x", "y");
 //    g.Replace("y", "x");
-
-
-
-
-//  g.Replace("are", "chicken");
-
-//  g.MergeReplace("a", "b");
-
+//    g.Replace("are", "chicken");
+//    g.MergeReplace("a", "b");
   std::cout << g << '\n';
-//  g.Replace("how", "")
 
 
 //  gdwg::Graph<std::string, int> g2{g};

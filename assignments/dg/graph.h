@@ -155,6 +155,7 @@ namespace gdwg {
                 return false;
             }
 
+            // check nodes
             int max = g1.nodeList_.size();
             for (int counter = 0; counter < max; counter++) {
                 // check node values
@@ -164,6 +165,7 @@ namespace gdwg {
                 }
             }
 
+            // check edges
             for (int counter = 0; counter < max; counter++) {
                 Node n1 = *g1.nodeList_[counter];
                 Node n2 = *g2.nodeList_[counter];

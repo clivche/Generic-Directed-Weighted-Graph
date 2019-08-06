@@ -213,8 +213,7 @@ void gdwg::Graph<N, E>::Node::UpdateEdges(std::vector<E> weights, N newNode,
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1,
                          typename std::vector<N>::const_iterator c2) {
-    // TODO: can't sort const_iterator
-    sort(c1,c2);
+    // TODO: can't sort const_iterator [CHANGED]
     for (auto &it = c1; it != c2; it++) {
         // Check for duplicates in initaliser vector
         bool alreadyInList = false;
@@ -225,7 +224,16 @@ gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1,
             }
         }
         if (!alreadyInList) {
-            nodeList_.push(std::shared_ptr<Node>(new Node(*it)));
+            auto listItem = nodeList_.begin();
+            while (listItem != nodeList_.end()) {
+                if (*it > (*listItem)->GetValue()) {
+                    listItem++;
+                }
+                else {
+                    break;
+                }
+            }
+            nodeList_.insert(listItem, std::shared_ptr<Node>(new Node(*it)));
         }
     }
 }
@@ -520,7 +528,9 @@ bool gdwg::Graph<N, E>::Replace(const N &oldData, const N &newData) {
  */
 template<typename N, typename E>
 void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
-
+    if (oldData == newData) {
+        return;
+    }
     // Find shared_ptr to nodes within nodeList_
     auto oldPtr = nodeList_.end();
     auto newPtr = nodeList_.end();
@@ -595,7 +605,6 @@ void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
 template<typename N, typename E>
 void gdwg::Graph<N, E>::Clear() {
     nodeList_.clear();
-
     // TODO :: see test "Reconstruct on a cleared graph"
 }
 
@@ -784,10 +793,6 @@ template<typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator &gdwg::Graph<N,
         E>::const_iterator::operator++() {
     ++weight_iter_;
-
-//    std::vector<std::weak_ptr<Node>> children = (*node_iter_)->GetChildren();
-//    std::map<N, std::vector<E>> edge_map = (*node_iter_)->GetEdges();
-//    std::vector<E> edge_vector = edge_map[*edge_iter_.first];
 
     std::vector<N> children;
     for (const auto& child : (*node_iter_)->GetChildren()) {

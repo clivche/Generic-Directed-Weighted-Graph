@@ -23,15 +23,15 @@ int main() {
     g.InsertEdge("c", "b", 3);
     g.InsertEdge("b", "b", 2);
 
-//    g.InsertEdge("a", "d", 4);
-//    g.InsertEdge("a", "d", 50);
-//    g.InsertEdge("d", "d", 5);
+    g.InsertEdge("a", "d", 4);
+    g.InsertEdge("a", "d", 50);
+    g.InsertEdge("d", "d", 5);
 
     std::cout << g << '\n';
 
-    std::cout << "MergeReplace b with d" << '\n';
+    std::cout << "MergeReplace" << '\n';
 
-    g.MergeReplace("b", "d");
+    g.MergeReplace("d", "a");
 
 //    std::vector<int> v1{1,2,4,8,10};
 //    std::vector<int> v2{2,3,5,6,10,17};

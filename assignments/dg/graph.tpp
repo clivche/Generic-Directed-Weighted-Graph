@@ -541,148 +541,48 @@ void gdwg::Graph<N, E>::MergeReplace(const N &oldData, const N &newData) {
     auto oldNode = *oldPtr;
     auto newNode = *newPtr;
 
-    // Handle Parents of oldNode
+    // Handle incoming edges of oldNode
     auto parentList = oldNode->GetParents();
-
-std::cout << "parentList of " << oldNode->GetValue()<<": ";
-for (const auto& item : parentList) {
-    const auto parentShared = item.lock();
-    std::cout << (parentShared)->GetValue() << ' ';
-}
-std::cout << '\n';
-
     for (auto it = parentList.begin(); it != parentList.end(); it++) {
         if (const auto parentShared = it->lock()) {
+            // If it is a self edge
             if (parentShared->GetValue() == oldData) {
+                // Add self child
                 newNode->AddChild(std::weak_ptr<Node>(newNode));
+                // Include all self edges
                 auto pEdge = parentShared->GetEdges();
                 for (const auto& w : pEdge[oldData]) {
                     this->InsertEdge(newData, newData, w);
                 }
-                continue;
             }
-
-            
-//std::cout << "----------------- " <<(parentShared)->GetValue() << " -----------------\n";
-//std::cout << "Children of " << (parentShared)->GetValue() <<" BEFORE: ";
-//auto CofP = parentShared->GetChildren();
-//for (const auto& item : CofP) {
-//if (auto itemlock = item.lock()) {
-//std::cout << itemlock->GetValue() << ' ';
-//}
-//}
-//std::cout << '\n';
-
-
-
-
-            // Alter parent->children_
-            //     Add newNode child
-            parentShared->AddChild(std::weak_ptr<Node>(newNode));
-            //     Remove child
-            parentShared->RemoveChild(oldData);
-
-//std::cout << "Children of " << (parentShared)->GetValue() <<" AFTER: ";
-//auto newCofP = parentShared->GetChildren();
-//for (auto it2 = newCofP.begin(); it2 != newCofP.end(); it2++) {
-//if (auto itemlock = it2->lock()) {
-//std::cout << itemlock->GetValue() << ' ';
-//}
-//}
-//std::cout << '\n';
-
-            // Merge/Replace parent->edges_
-            auto pEdge = parentShared->GetEdges();
-
-//std::cout << "Before Merge:\n";
-//std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
-//for (const auto& item : pEdge[oldData]) {
-//std::cout << item << ' ';
-//}
-//std::cout << '\n';
-//
-//std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
-//for (const auto& item : pEdge[newData]) {
-//std::cout << item << ' ';
-//}
-//std::cout << '\n';
-//
-
-
-            auto mergedWeights = mergeSorted(pEdge[oldData], pEdge[newData]);
-
-            for (const auto& w : mergedWeights) {
-                this->InsertEdge(parentShared->GetValue(), newData, w);
+            // Otherwise
+            else {
+                // Remove child
+                parentShared->RemoveChild(oldData);
+                // Insert edges from parents to newNode
+                auto pEdge = parentShared->GetEdges();
+                for (const auto& w : pEdge[oldData]) {
+                    this->InsertEdge(parentShared->GetValue(), newData, w);
+                }
             }
-
-//            std::cout << "Merge Result: ";
-//            for (const auto& t : temp) {
-//                std::cout << t << ' ';
-//            }
-//            std::cout << '\n';
-//
-//            pEdge[newData].clear();
-//            pEdge.insert({newData, temp});
-//            pEdge[oldData].clear();
-
-            pEdge = parentShared->GetEdges();
-
-            //std::cout << "After Merge and Clear:\n";
-//std::cout << parentShared->GetValue()<<"->"<<oldData<<": ";
-//for (const auto& item : pEdge[oldData]) {
-//std::cout << item << ' ';
-//}
-//std::cout << '\n';
-//
-//std::cout << parentShared->GetValue()<<"->"<<newData<<": ";
-//for (const auto& item : pEdge[newData]) {
-//std::cout << item << ' ';
-//}
-//std::cout << '\n';
-//
-//std::cout << "Parents of newNode before add: ";
-//auto PofNN = newNode->GetParents();
-//for (const auto& item : PofNN) {
-//    if (auto itemlock = item.lock()) {
-//        std::cout << itemlock->GetValue() << ' ';
-//    }
-//}
-//std::cout << '\n';
-
-            // Add parent to newNode
-            newNode->AddParent(*it);
-
-//std::cout << "Parents of newNode after add: ";
-//PofNN = newNode->GetParents();
-//for (const auto& item : PofNN) {
-//    if (auto itemlock = item.lock()) {
-//        std::cout << itemlock->GetValue() << ' ';
-//    }
-//}
-//std::cout << '\n';
         }
     }
 
-    // Handle Children of oldNode
-    for (const auto child : oldNode->GetChildren()) {
-        if (const auto childShared = child.lock()) {
-            // Alter child->parent_
-            //     Remove parent
-            childShared->RemoveParent(oldData);
-            //     Add parent
-            childShared->AddParent(std::weak_ptr<Node>(newNode));
-
-            // Add child to newNode
-            newNode->AddChild(child);
-        }
-    }
-
-    // Handle Edges
-    auto newEdges = newNode->GetEdges();
+    // Handle outgoing edges of oldNode
+    auto childList = oldNode->GetChildren();
     auto oldEdges = oldNode->GetEdges();
-    for (auto it = oldEdges.begin(); it != oldEdges.end(); it++) {
-        auto newEdgeVector = mergeSorted(newEdges[it->first], it->second);
-        newEdges[it->first] = newEdgeVector;
+    // For all children
+    for (auto it = childList.begin(); it != childList.end(); it++) {
+        // If still valid
+        if (const auto childShared = it->lock()) {
+            // Find destination and all its edge weights
+            auto dst = childShared->GetValue();
+            auto weights = oldEdges[dst];
+            // Insert all edges to lead from newNode
+            for (auto w = weights.begin(); w != weights.end(); w++) {
+                this->InsertEdge(newData, dst, *w);
+            }
+        }
     }
 
     nodeList_.erase(oldPtr);

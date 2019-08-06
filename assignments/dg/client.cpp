@@ -7,7 +7,9 @@
 // Note: At the moment, there is no client.sampleout. Please do your own testing
 
 int main() {
-  gdwg::Graph<std::string, int> g;
+  const std::vector<std::string> v1 {"x", "y", "a", "p", "b"};
+  gdwg::Graph<std::string, int> g{"x", "y", "a", "p", "b"};
+
     std::cout << g << '\n';
 
 //    g.InsertNode("h");

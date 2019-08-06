@@ -282,7 +282,6 @@ SCENARIO("Insert edge with non-existent dst") {
 /**  == Equality == **/
 /*********************/
 
-// TODO comparing graphs that have had nodes deleted
 SCENARIO("Evaluate the equality of two graphs that have had nodes deleted") {
     GIVEN("two graphs") {
         gdwg::Graph<std::string, int> g;

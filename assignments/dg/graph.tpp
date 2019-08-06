@@ -6,31 +6,12 @@
 #include "assignments/dg/graph.h"
 #include <stdexcept>
 #include <algorithm>
-
-//template<typename X, typename Predicate>
-//std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2,
-//                           Predicate f = [](X x) { return x; }) {
-//    auto &it1 = v1.begin();
-//    auto &it2 = v2.begin();
-//    std::vector<X> result;
-//    while (it1 != v1.end() || it2 != v2.end()) {
-//        if (it1 == v1.end()) {
-//            result.push(*it2++);
-//        }
-//        if (it2 == v2.end()) {
-//            result.push(*it1++);
-//        }
-//        if (f(*it1) < f(*it2)) {
-//            result.push(*it1++);
-//        } else if (f(*it2) < f(*it1)) {
-//            result.push(*it2++);
-//        } else {
-//            result.push(*it1++);
-//            it2++;
-//        }
-//    }
-//    return result;
-//}
+/**
+ * Template to merge two sorted vectors
+ *
+ * @param v1 - sorted vector to be merged
+ * @param v2 - sorted vector to be merged
+ */
 template<typename X>
 std::vector<X> mergeSorted(std::vector<X> v1, std::vector<X> v2) {
     auto it1 = v1.begin();
@@ -213,7 +194,6 @@ void gdwg::Graph<N, E>::Node::UpdateEdges(std::vector<E> weights, N newNode,
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(typename std::vector<N>::const_iterator c1,
                          typename std::vector<N>::const_iterator c2) {
-    // TODO: can't sort const_iterator [CHANGED]
     for (auto &it = c1; it != c2; it++) {
         // Check for duplicates in initaliser vector
         bool alreadyInList = false;
@@ -289,9 +269,7 @@ gdwg::Graph<N, E>::Graph(
 
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(std::initializer_list<N> args) {
-    // TODO: can't sort initializer list
-    sort(args.begin(), args.end());
-    for (auto &it = args.begin(); it != args.begin(); it++) {
+    for (auto it = args.begin(); it != args.end(); it++) {
         // Check for duplicates in initaliser vector
         bool alreadyInList = false;
         for (const auto &item : nodeList_) {
@@ -301,10 +279,20 @@ gdwg::Graph<N, E>::Graph(std::initializer_list<N> args) {
             }
         }
         if (!alreadyInList) {
-            nodeList_.push(std::shared_ptr<Node>(new Node(*it)));
+            auto listItem = nodeList_.begin();
+            while (listItem != nodeList_.end()) {
+                if (*it > (*listItem)->GetValue()) {
+                    listItem++;
+                }
+                else {
+                    break;
+                }
+            }
+            nodeList_.insert(listItem, std::shared_ptr<Node>(new Node(*it)));
         }
     }
 }
+
 
 
 
@@ -949,7 +937,7 @@ typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cbegin() const {
     return {&it, &nodeList_.end(), &nodeList_.begin(), children.begin(), weights
         .begin()};
 
-    //todo what happens when key maps to emoty vector
+    //todo what happens when key maps to empty vector
 }
 
 /**

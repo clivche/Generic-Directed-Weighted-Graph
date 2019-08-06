@@ -1,18 +1,44 @@
 /*
 Copyright [2019] Clive Chen, Vaishnavi Bapat
 zid - z5166040, z5075858
+
   == Explanation and rational of testing ==
 
-  Explain and justify how you approached testing, the degree
-   to which you're certain you have covered all possibilities,
-   and why you think your tests are that thorough.
+ The way we approached testing was looking at each operation and method that
+ we were asked to implement and look at how each of them were designed to
+ behave given appropriate and inappropriate input or existing state of the
+ graph (parameters and types on which they are called).
 
+ As you read this file, you will see dependencies between methods in testing.
+ This is because fundamentally, we need to be accessing parts of the graph
+ (which require ome kind of logic themselves) to be testing other parts. One
+ thought was to create a GetNodePtrList() method so that we could conduct
+ manual testing of all the stored arrays and maps. However, it did not make
+ sense for the client to be able to access such a powerful element within the
+ graph, even if it was for manual testing methods. If an actual user happened
+ upon it, they could cause some serious damage.
+
+ Hence, you will see the contructors, getters, and insertions use each other
+ to help with graph construction and testing in the form of manual checking.
+ Given that those are tested solidly, we go on to test the equality and
+ inequality operators. The reasoning for this is that once we get further
+ into testing, it is much easier to assess the overall state of the
+ accessible nodes and edges than to check the weak_ptrs and which are
+ lockable throughout an entire graph that we've modified whilst testing
+ methods. Instead, we choose to create the graph being tested, modify it and
+ compare it to the expected graph.
+
+ It looks to be testing multiple things but it is based of those particular
+ operators / methods / assignments / constructor having been tested in other
+ tests. In my opinion it is hard to thoroughly and efficiently test a class
+ like this without also depending on other methods. For each of the
+ operations / methods / constructors I have explored various cases, including
+ edge cases. I am sure there are cases I have missed, as is always the case.
 */
 
 #include "assignments/dg/graph.h"
-#include "assignments/dg/graph.tpp"
 #include "catch.h"
-#include "cassert"
+#include "assignments/dg/graph.tpp"
 
 
 /*****************************************************/
@@ -23,7 +49,7 @@ SCENARIO("Default constructor") {
         gdwg::Graph<std::string, int> g;
 
         THEN("the result is an empty graph") {
-            auto nodeList = g.GetNodeList();
+            auto nodeList = g.GetNodes();
             CHECK(nodeList.size() == 0);
         }
     }
@@ -59,16 +85,11 @@ SCENARIO("Node insertion") {
             bool res = g.InsertNode(str);
 
             THEN("The solitary node should be found in the graph") {
-
-                auto nodeList = g.GetNodeList();
-                auto node_iter = nodeList.begin();
+                auto nodeList = g.GetNodes();
 
                 CHECK(res == true);
                 CHECK(nodeList.size() == 1);
-                CHECK((*node_iter)->GetValue() == str);
-                CHECK((*node_iter)->GetChildren().size() == 0);
-                CHECK((*node_iter)->GetParents().size() == 0);
-                CHECK((*node_iter)->GetEdges().size() == 0);
+                CHECK(nodeList[0] == str);
             }
         }
     }
@@ -84,18 +105,12 @@ SCENARIO("Node insert with pre-existing node") {
             bool res2 = g.InsertNode(str);
 
             THEN("The graph should remain unchanged") {
-
-                auto nodeList = g.GetNodeList();
-                auto node_iter = nodeList.begin();
+                auto nodeList = g.GetNodes();
 
                 CHECK(res == true);
                 CHECK(res2 == false);
-
                 CHECK(nodeList.size() == 1);
-                CHECK((*node_iter)->GetValue() == str);
-                CHECK((*node_iter)->GetChildren().size() == 0);
-                CHECK((*node_iter)->GetParents().size() == 0);
-                CHECK((*node_iter)->GetEdges().size() == 0);
+                CHECK(nodeList[0] == str);
             }
         }
     }
@@ -118,31 +133,21 @@ SCENARIO("Insert edge between two nodes") {
             bool res = g.InsertEdge(n1, n2, edge);
 
             THEN("The graph should contain the newly created edge") {
-
-                auto nodeList = g.GetNodeList();
-
                 CHECK(res == true);
+
+                auto nodeList = g.GetNodes();
                 CHECK(nodeList.size() == 2);
 
-                auto node1 = nodeList[0];
-                auto node2 = nodeList[1];
-                auto edge_map = (*node1).GetEdges();
+                auto n1_connected = g.GetConnected(n1);
+                auto n2_connected = g.GetConnected(n2);
+                CHECK(n1_connected.size() == 1);
+                CHECK(n2_connected.size() == 0);
 
-                auto edge_key = edge_map.begin()->first;
-                auto edge_val = edge_map.begin()->second;
-
-                CHECK((*node1).GetValue() == n1);
-                CHECK((*node1).GetChildren().size() == 1);
-                CHECK((*node1).GetParents().size() == 0);
-                CHECK(edge_map.size() == 1);
-                CHECK(edge_key == n2);
-                CHECK(edge_val == std::vector<std::string>{edge});
-
-                // check dst remains the same
-                CHECK((*node2).GetValue() == n2);
-                CHECK((*node2).GetChildren().size() == 0);
-                CHECK((*node2).GetParents().size() == 1);
-                CHECK((*node2).GetEdges().size() == 0);
+                auto n1_weights = g.GetWeights(n1, n2);
+                auto n2_weights = g.GetWeights(n2, n1);
+                CHECK(n1_weights.size() == 1);
+                CHECK(n2_weights.size() == 0);
+                CHECK(n1_weights[0] == edge);
             }
         }
     }
@@ -161,36 +166,27 @@ SCENARIO("Insert second edge between two nodes") {
 
         WHEN("aa second edge is created in the same direction between the two "
              "nodes") {
-
             int edge2 = 5;
             bool res = g.InsertEdge(n1, n2, edge2);
 
             THEN("The graph should contain the newly created edge") {
-
-                auto nodeList = g.GetNodeList();
-
                 CHECK(res == true);
+
+                auto nodeList = g.GetNodes();
                 CHECK(nodeList.size() == 2);
 
-                auto node1 = nodeList[0];
-                auto node2 = nodeList[1];
-                auto edge_map = (*node1).GetEdges();
+                auto n1_connected = g.GetConnected(n1);
+                auto n2_connected = g.GetConnected(n2);
+                CHECK(n1_connected.size() == 1);
+                CHECK(n2_connected.size() == 0);
 
-                auto edge_key = edge_map.begin()->first;
-                auto edge_val = edge_map.begin()->second;
+                auto n1_weights = g.GetWeights(n1, n2);
+                auto n2_weights = g.GetWeights(n2, n1);
+                CHECK(n1_weights.size() == 2);
+                CHECK(n2_weights.size() == 0);
 
-                CHECK((*node1).GetValue() == n1);
-                CHECK((*node1).GetChildren().size() == 1);
-                CHECK((*node1).GetParents().size() == 0);
-                CHECK(edge_map.size() == 1);
-                CHECK(edge_key == n2);
-                CHECK(edge_val == std::vector<int>{edge1, edge2});
-
-                // check dst remains the same
-                CHECK((*node2).GetValue() == n2);
-                CHECK((*node2).GetChildren().size() == 0);
-                CHECK((*node2).GetParents().size() == 1);
-                CHECK((*node2).GetEdges().size() == 0);
+                CHECK(n1_weights[0] == edge1);
+                CHECK(n1_weights[1] == edge2);
             }
         }
     }
@@ -208,35 +204,15 @@ SCENARIO("Insert duplicate edge between two nodes") {
         g.InsertEdge(n1, n2, edge);
 
         WHEN("we attempt to duplicate the edge") {
-
             bool res = g.InsertEdge(n1, n2, edge);
 
             THEN("The graph should remain the same") {
-
-                auto nodeList = g.GetNodeList();
-
                 CHECK(res == false);
-                CHECK(nodeList.size() == 2);
 
-                auto node1 = nodeList[0];
-                auto node2 = nodeList[1];
-                auto edge_map = (*node1).GetEdges();
+                gdwg::Graph<std::string, int> expected{"general", "kenobi"};
+                expected.InsertEdge(n1, n2, 4);
 
-                auto edge_key = edge_map.begin()->first;
-                auto edge_val = edge_map.begin()->second;
-
-                CHECK((*node1).GetValue() == n1);
-                CHECK((*node1).GetChildren().size() == 1);
-                CHECK((*node1).GetParents().size() == 0);
-                CHECK(edge_map.size() == 1);
-                CHECK(edge_key == n2);
-                CHECK(edge_val == std::vector<int>{edge});
-
-                // check dst remains the same
-                CHECK((*node2).GetValue() == n2);
-                CHECK((*node2).GetChildren().size() == 0);
-                CHECK((*node2).GetParents().size() == 1);
-                CHECK((*node2).GetEdges().size() == 0);
+                CHECK(g == expected);
             }
         }
     }
@@ -339,8 +315,6 @@ SCENARIO("Evaluate the equality of two graphs that have had nodes deleted") {
     }
 }
 
-
-// TODO comparing graphs that have been created in 2 different ways
 SCENARIO("Evaluate the equality of two differently constructed graphs") {
     GIVEN("two graphs") {
         gdwg::Graph<std::string, int> g;
@@ -490,7 +464,6 @@ SCENARIO("Delete a solitary node") {
                 CHECK(res == true);
                 CHECK((g == expected) == true);
             }
-
         }
     }
 }
@@ -648,18 +621,51 @@ SCENARIO("Clear a graph") {
         g.InsertEdge("how", "hello", 4);
 
         WHEN("we clear the graph") {
-            auto nodeList = g.GetNodeList();
+            auto nodeList = g.GetNodes();
             CHECK(nodeList.size() == 4);
             g.Clear();
 
             THEN("the graph is empty") {
-                nodeList = g.GetNodeList();
+                nodeList = g.GetNodes();
                 CHECK(nodeList.size() == 0);
             }
         }
     }
 }
 
+SCENARIO("Reconstruct on a cleared graph") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("hello");
+        g.InsertNode("you?");
+        g.InsertNode("how");
+        g.InsertNode("are");
+
+        g.InsertEdge("hello", "how", 5);
+        g.InsertEdge("hello", "are", 8);
+        g.InsertEdge("hello", "are", 2);
+        g.InsertEdge("how", "hello", 4);
+
+        WHEN("we clear the graph") {
+            g.Clear();
+            auto nodeList = g.GetNodes();
+            CHECK(nodeList.size() == 0);
+
+            THEN("we can 'start a new graph' by adding nodes and edges") {
+                g.InsertNode("hello");
+                g.InsertNode("you?");
+                g.InsertEdge("hello", "you?", 5);
+
+                gdwg::Graph<std::string, int> expected;
+                expected.InsertNode("hello");
+                expected.InsertNode("you?");
+                expected.InsertEdge("hello", "you?", 5);
+
+                CHECK((g == expected) == true);
+            }
+        }
+    }
+}
 
 
 /************************/
@@ -936,7 +942,10 @@ SCENARIO("Printing a complex graph") {
             std::stringstream buffer;
             buffer << g;
             THEN("we get the correct output") {
-                std::string expected = "a (\n  b | 1\n  b | 10\n  d | 4\n  d | 50\n)\nb (\n  b | 2\n  c | 2\n)\nc (\n  b | 3\n)\nd (\n  b | 23\n  d | 5\n)\n";
+                std::string expected = "a (\n  b | 1\n  b | 10\n  d | 4\n  d "
+                                       "| 50\n)\nb (\n  b | 2\n  c | 2\n)\nc "
+                                       "(\n  b | 3\n)\nd (\n  b | 23\n  d | "
+                                       "5\n)\n";
                 CHECK(buffer.str() == expected);
             }
         }
@@ -976,7 +985,11 @@ SCENARIO("Printing a disjointed graph") {
             std::stringstream buffer;
             buffer << g;
             THEN("we get the correct output") {
-                std::string expected = "a (\n  b | 1\n  b | 10\n  d | 4\n  d | 50\n)\nb (\n  b | 2\n  c | 2\n)\nc (\n  b | 3\n)\nd (\n  b | 23\n  d | 5\n)\nw (\n  w | 23\n  x | 10\n  y | 4\n)\nx (\n  z | 3\n)\ny (\n  y | 5\n)\nz (\n  w | 2\n  x | 2\n  y | 50\n  z | 1\n)\n";
+                std::string expected = "a (\n  b | 1\n  b | 10\n  d | 4\n  d |"
+                       " 50\n)\nb (\n  b | 2\n  c | 2\n)\nc (\n  b | 3\n)\nd "
+                       "(\n  b | 23\n  d | 5\n)\nw (\n  w | 23\n  x | 10\n  y"
+                       " | 4\n)\nx (\n  z | 3\n)\ny (\n  y | 5\n)\nz (\n  w |"
+                       " 2\n  x | 2\n  y | 50\n  z | 1\n)\n";
                 CHECK(buffer.str() == expected);
             }
         }
@@ -1013,12 +1026,27 @@ SCENARIO("Getting nodes vector of graph with one node") {
     }
 }
 
+SCENARIO("Get nodes of graph made by initializer list") {
+    GIVEN("the vector iterator constructed graph") {
+        std::vector<std::string> v1{"c", "e", "a", "d", "b"};
+        gdwg::Graph<std::string, int> g{v1.begin(), v1.end()};
+
+        THEN("we can obtain a vector of the nodes present") {
+            auto nodeList = g.GetNodes();
+            CHECK(nodeList.size() == 5);
+
+            std::vector<std::string> expected {"a", "b", "c", "d", "e"};
+            CHECK((nodeList == expected) == true);
+        }
+    }
+}
+
 SCENARIO("Getting nodes vector of graph with multiple nodes") {
     GIVEN("a multiple node graph") {
         gdwg::Graph<std::string, int> g;
         g.InsertNode("a");
-        g.InsertNode("d");
         g.InsertNode("c");
+        g.InsertNode("d");
         g.InsertNode("b");
         WHEN("calling GetNodes") {
             std::vector<std::string> res = g.GetNodes();
@@ -1030,10 +1058,43 @@ SCENARIO("Getting nodes vector of graph with multiple nodes") {
     }
 }
 
+SCENARIO("Get nodes of graph where nodes have been deleted") {
+    GIVEN("a graph which has been altered by deletion and replacing of nodes") {
+        std::vector<std::string> v1{"c", "e", "a", "d", "b"};
+        gdwg::Graph<std::string, int> g{v1.begin(), v1.end()};
+        g.DeleteNode("e");
+        g.Replace("a", "z");
+
+        THEN("we can obtain a vector of the nodes present") {
+            auto nodeList = g.GetNodes();
+            CHECK(nodeList.size() == 4);
+
+            std::vector<std::string> expected {"b", "c", "d", "z"};
+            CHECK((nodeList == expected) == true);
+        }
+    }
+}
+
 
 /*************************/
 /**  == GetConnected == **/
 /*************************/
+
+SCENARIO("Get connected nodes of non-existent node") {
+    GIVEN("a default constructed graph") {
+        gdwg::Graph<std::string, int> g;
+
+        WHEN("we try to obtain the connections of a non-existent node") {
+            std::string non_existent_node = "c";
+
+            THEN("an exception is thrown") {
+                CHECK_THROWS_WITH(g.GetConnected(non_existent_node), "Cannot "
+                     "call Graph::GetConnected if src doesn't exist in the "
+                     "graph");
+            }
+        }
+    }
+}
 
 SCENARIO("Getting connected nodes of an isolated node of graph") {
     GIVEN("a graph") {
@@ -1062,7 +1123,7 @@ SCENARIO("Getting connected nodes of an isolated node of graph") {
     }
 }
 
-SCENARIO("Getting connected nodes of connected node in graph") {
+SCENARIO("Getting connected nodes of a connected node in graph") {
     GIVEN("a graph") {
         gdwg::Graph<std::string, int> g;
         g.InsertNode("c");
@@ -1163,7 +1224,7 @@ SCENARIO("Getting edges between two different connected nodes") {
         WHEN("calling GetConnected") {
             std::vector<int> res = g.GetWeights("a", "d");
             THEN("an empty vector is returned") {
-                std::vector<int> expected {4,50};
+                std::vector<int> expected {4, 50};
                 CHECK(res == expected);
             }
         }
@@ -1192,69 +1253,43 @@ SCENARIO("Getting edges between a self connected node") {
         WHEN("calling GetConnected") {
             std::vector<int> res = g.GetWeights("b", "b");
             THEN("an empty vector is returned") {
-                std::vector<int> expected{1,2,4,9};
+                std::vector<int> expected{1, 2, 4, 9};
                 CHECK(res == expected);
             }
         }
     }
 }
-//SCENARIO("") {
-//    WHEN("") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        THEN("") {
-//
-//        }
-//    }
-//}
-//
-//SCENARIO("") {
-//    WHEN("") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        THEN("") {
-//
-//        }
-//    }
-//}
-//
-//SCENARIO("") {
-//    WHEN("") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        THEN("") {
-//
-//        }
-//    }
-//}
-//
-//SCENARIO("") {
-//    WHEN("") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        THEN("") {
-//
-//        }
-//    }
-//}
-//
-//
-//SCENARIO("") {
-//    WHEN("") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        THEN("") {
-//
-//        }
-//    }
-//}
-//
-//SCENARIO("") {
-//    WHEN("") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        THEN("") {
-//
-//        }
-//    }
-//}
+
+SCENARIO("Get weights of non-existent src node") {
+    GIVEN("a default constructed graph") {
+        gdwg::Graph<std::string, int> g;
+        std::string n = "a";
+
+        WHEN("we try to obtain the connections of a non-existent node") {
+            std::string non_existent_src = "c";
+
+            THEN("an exception is thrown") {
+                CHECK_THROWS_WITH(g.GetWeights(non_existent_src, n),
+                        "Cannot call Graph::GetWeights if src or dst node "
+                        "don't exist in the graph");
+            }
+        }
+    }
+}
+
+SCENARIO("Get weights of non-existent dst node") {
+    GIVEN("a default constructed graph") {
+        gdwg::Graph<std::string, int> g;
+        std::string n = "a";
+
+        WHEN("we try to obtain the connections of a non-existent node") {
+            std::string non_existent_dst = "c";
+
+            THEN("an exception is thrown") {
+                CHECK_THROWS_WITH(g.GetWeights(n, non_existent_dst),
+                        "Cannot call Graph::GetWeights if src or dst node "
+                        "don't exist in the graph");
+            }
+        }
+    }
+}

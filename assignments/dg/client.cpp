@@ -8,27 +8,39 @@
 
 int main() {
   gdwg::Graph<std::string, int> g;
+    std::cout << g << '\n';
 
 //    g.InsertNode("h");
 //    g.InsertNode("g");
 //    g.InsertNode("f");
 //    g.InsertNode("e");
-    g.InsertNode("c");
-    g.InsertNode("d");
-    g.InsertNode("b");
-    g.InsertNode("a");
-
-    g.InsertEdge("a", "b", 10);
-    g.InsertEdge("a", "b", 1);
-    g.InsertEdge("a", "d", 4);
-    g.InsertEdge("a", "d", 50);
-    g.InsertEdge("b", "b", 2);
-    g.InsertEdge("c", "b", 3);
-    g.InsertEdge("b", "c", 2);
-    g.InsertEdge("d", "b", 23);
-    g.InsertEdge("d", "d", 5);
-
-    std::cout << g << '\n';
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        g.InsertNode("x");
+        g.InsertNode("y");
+        g.InsertNode("z");
+        g.InsertNode("w");
+        g.InsertEdge("w", "x", 10);
+        g.InsertEdge("z", "z", 1);
+        g.InsertEdge("w", "y", 4);
+        g.InsertEdge("z", "y", 50);
+        g.InsertEdge("z", "w", 2);
+        g.InsertEdge("x", "z", 3);
+        g.InsertEdge("z", "x", 2);
+        g.InsertEdge("w", "w", 23);
+        g.InsertEdge("y", "y", 5);
+        std::cout << g << '\n';
 
     std::cout << "MergeReplace" << '\n';
 
@@ -62,7 +74,7 @@ int main() {
 //    g.Replace("y", "x");
 //    g.Replace("are", "chicken");
 //    g.MergeReplace("a", "b");
-  std::cout << g << '\n';
+    std::cout << g << '\n';
 
 
 //  gdwg::Graph<std::string, int> g2{g};

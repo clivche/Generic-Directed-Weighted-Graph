@@ -710,10 +710,10 @@ std::vector<E> gdwg::Graph<N, E>::GetWeights(const N &src, const N &dst) {
     auto srcNode = nodeList_.end();
     bool dstFound = false;
     for (auto it = nodeList_.begin(); it != nodeList_.end(); it++) {
-        if (it->GetValue() == src) {
+        if ((*it)->GetValue() == src) {
             srcNode = it;
         }
-        if (it->GetValue() == dst) {
+        if ((*it)->GetValue() == dst) {
             dstFound = true;
         }
     }
@@ -723,7 +723,7 @@ std::vector<E> gdwg::Graph<N, E>::GetWeights(const N &src, const N &dst) {
     }
 
     // return src-dst edge list
-    auto srcEdges = srcNode->GetEdges();
+    auto srcEdges = (*srcNode)->GetEdges();
     return srcEdges[dst];
 
 }

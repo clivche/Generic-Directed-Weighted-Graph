@@ -661,40 +661,6 @@ SCENARIO("Clear a graph") {
     }
 }
 
-//SCENARIO("Reconstruct on a cleared graph") {
-//    GIVEN("a graph") {
-//        gdwg::Graph<std::string, int> g;
-//        g.InsertNode("hello");
-//        g.InsertNode("you?");
-//        g.InsertNode("how");
-//        g.InsertNode("are");
-//
-//        g.InsertEdge("hello", "how", 5);
-//        g.InsertEdge("hello", "are", 8);
-//        g.InsertEdge("hello", "are", 2);
-//        g.InsertEdge("how", "hello", 4);
-//
-//        WHEN("we clear the graph") {
-//            g.Clear();
-//            auto nodeList = g.GetNodeList();
-//            CHECK(nodeList.size() == 0);
-//
-//            THEN("we can 'start a new graph' by adding nodes and edges") {
-//                g.InsertNode("hello");
-//                g.InsertNode("you?");
-//                g.InsertEdge("hello", "how", 5);
-//
-//                gdwg::Graph<std::string, int> expected;
-//                expected.InsertNode("hello");
-//                expected.InsertNode("you?");
-//                expected.InsertEdge("hello", "how", 5);
-//
-//                CHECK((g == expected) == true);
-//
-//            }
-//        }
-//    }
-//}
 
 
 /************************/
@@ -732,7 +698,6 @@ SCENARIO("Replace a node with children and parents") {
     }
 }
 
-
 SCENARIO("Replace a non-existent node") {
     GIVEN("a graph") {
         gdwg::Graph<std::string, int> g;
@@ -758,50 +723,482 @@ SCENARIO("Replace a non-existent node") {
 /*************************/
 /**  == MergeReplace == **/
 /*************************/
-SCENARIO("Replace a non-existent node") {
+
+SCENARIO("MergeReplace with a non-connected node") {
     GIVEN("a graph") {
-//        gdwg::Graph<std::string, int> g;
-//
-//        g.InsertNode("c");
-//        g.InsertNode("d");
-//        g.InsertNode("b");
-//        g.InsertNode("a");
-//
-//        g.InsertEdge("a", "b", 10);
-//        g.InsertEdge("a", "b", 1);
-//        g.InsertEdge("a", "d", 4);
-//        g.InsertEdge("a", "d", 50);
-//        g.InsertEdge("b", "b", 2);
-//        g.InsertEdge("c", "b", 3);
-//        g.InsertEdge("b", "c", 2);
-//        g.InsertEdge("d", "b", 23);
-//        g.InsertEdge("d", "d", 5);
-//
-//        std::cout << g << '\n';
-//
-//        std::cout << "MergeReplace" << '\n';
-//
-//        g.MergeReplace("d", "a");
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertNode("e");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("we replace a node with parents and children with an isolated node") {
+            g.MergeReplace("d", "e");
+            THEN("we get the correct result") {
+                gdwg::Graph<std::string, int> expected;
+                expected.InsertNode("c");
+                expected.InsertNode("b");
+                expected.InsertNode("a");
+                expected.InsertNode("e");
+                expected.InsertEdge("a", "b", 10);
+                expected.InsertEdge("a", "b", 1);
+                expected.InsertEdge("a", "e", 4);
+                expected.InsertEdge("a", "e", 50);
+                expected.InsertEdge("b", "b", 2);
+                expected.InsertEdge("c", "b", 3);
+                expected.InsertEdge("b", "c", 2);
+                expected.InsertEdge("e", "b", 23);
+                expected.InsertEdge("e", "e", 5);
+                CHECK(g == expected);
+            }
+        }
     }
 }
+
+SCENARIO("MergeReplace a self-connected node") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("we replace a node with self edges") {
+            g.MergeReplace("d", "a");
+            THEN("we get the correct result") {
+                gdwg::Graph<std::string, int> expected;
+                expected.InsertNode("c");
+                expected.InsertNode("b");
+                expected.InsertNode("a");
+                expected.InsertEdge("a", "b", 10);
+                expected.InsertEdge("a", "b", 1);
+                expected.InsertEdge("a", "a", 4);
+                expected.InsertEdge("a", "a", 50);
+                expected.InsertEdge("b", "b", 2);
+                expected.InsertEdge("c", "b", 3);
+                expected.InsertEdge("b", "c", 2);
+                expected.InsertEdge("a", "b", 23);
+                expected.InsertEdge("a", "a", 5);
+                CHECK(g == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("MergeReplace a non-connected node") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertNode("e");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("we replace a node with no parents and children with a connected node") {
+            g.MergeReplace("e", "d");
+            THEN("we get the correct result") {
+                gdwg::Graph<std::string, int> expected;
+                expected.InsertNode("c");
+                expected.InsertNode("d");
+                expected.InsertNode("b");
+                expected.InsertNode("a");
+                expected.InsertEdge("a", "b", 10);
+                expected.InsertEdge("a", "b", 1);
+                expected.InsertEdge("a", "d", 4);
+                expected.InsertEdge("a", "d", 50);
+                expected.InsertEdge("b", "b", 2);
+                expected.InsertEdge("c", "b", 3);
+                expected.InsertEdge("b", "c", 2);
+                expected.InsertEdge("d", "b", 23);
+                expected.InsertEdge("d", "d", 5);
+                CHECK(g == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("MergeReplace a node with itself") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("we MergeReplace a node with itself") {
+            g.MergeReplace("a", "a");
+            THEN("we get the same graph") {
+                gdwg::Graph<std::string, int> expected;
+                expected.InsertNode("c");
+                expected.InsertNode("d");
+                expected.InsertNode("b");
+                expected.InsertNode("a");
+                expected.InsertEdge("a", "b", 10);
+                expected.InsertEdge("a", "b", 1);
+                expected.InsertEdge("a", "d", 4);
+                expected.InsertEdge("a", "d", 50);
+                expected.InsertEdge("b", "b", 2);
+                expected.InsertEdge("c", "b", 3);
+                expected.InsertEdge("b", "c", 2);
+                expected.InsertEdge("d", "b", 23);
+                expected.InsertEdge("d", "d", 5);
+                CHECK(g == expected);
+            }
+        }
+    }
+}
+
 /***************************/
 /**  == Printing Graph == **/
 /***************************/
 
+SCENARIO("Printing empty graph") {
+    GIVEN("an empty graph") {
+        gdwg::Graph<std::string, int> g;
+        WHEN("we print it") {
+            std::stringstream buffer;
+            buffer << g;
+            THEN("we get no printing") {
+                std::string expected = "";
+                CHECK(buffer.str() == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Printing an unconnected graph") {
+    GIVEN("an unconnected graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        WHEN("we print it") {
+            std::stringstream buffer;
+            buffer << g;
+            THEN("we get the correct output") {
+                std::string expected = "a (\n)\nb (\n)\nc (\n)\nd (\n)\n";
+                CHECK(buffer.str() == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Printing a complex graph") {
+    GIVEN("a complex graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("we print it") {
+            std::stringstream buffer;
+            buffer << g;
+            THEN("we get the correct output") {
+                std::string expected = "a (\n  b | 1\n  b | 10\n  d | 4\n  d | 50\n)\nb (\n  b | 2\n  c | 2\n)\nc (\n  b | 3\n)\nd (\n  b | 23\n  d | 5\n)\n";
+                CHECK(buffer.str() == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Printing a disjointed graph") {
+    GIVEN("a disjointed graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        g.InsertNode("x");
+        g.InsertNode("y");
+        g.InsertNode("z");
+        g.InsertNode("w");
+        g.InsertEdge("w", "x", 10);
+        g.InsertEdge("z", "z", 1);
+        g.InsertEdge("w", "y", 4);
+        g.InsertEdge("z", "y", 50);
+        g.InsertEdge("z", "w", 2);
+        g.InsertEdge("x", "z", 3);
+        g.InsertEdge("z", "x", 2);
+        g.InsertEdge("w", "w", 23);
+        g.InsertEdge("y", "y", 5);
+        WHEN("we print it") {
+            std::stringstream buffer;
+            buffer << g;
+            THEN("we get the correct output") {
+                std::string expected = "a (\n  b | 1\n  b | 10\n  d | 4\n  d | 50\n)\nb (\n  b | 2\n  c | 2\n)\nc (\n  b | 3\n)\nd (\n  b | 23\n  d | 5\n)\nw (\n  w | 23\n  x | 10\n  y | 4\n)\nx (\n  z | 3\n)\ny (\n  y | 5\n)\nz (\n  w | 2\n  x | 2\n  y | 50\n  z | 1\n)\n";
+                CHECK(buffer.str() == expected);
+            }
+        }
+    }
+}
 /*********************/
 /**  == GetNodes == **/
 /*********************/
+
+SCENARIO("Getting nodes vector of empty graph") {
+    GIVEN("an empty graph") {
+        gdwg::Graph<std::string, int> g;
+        WHEN("calling GetNodes") {
+            std::vector<std::string> res = g.GetNodes();
+            THEN("an empty vector is returned") {
+                std::vector<std::string> expected;
+                CHECK(res == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Getting nodes vector of graph with one node") {
+    GIVEN("a single node graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("a");
+        WHEN("calling GetNodes") {
+            std::vector<std::string> res = g.GetNodes();
+            THEN("the correct vector is returned") {
+                std::vector<std::string> expected{"a"};
+                CHECK(res == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Getting nodes vector of graph with multiple nodes") {
+    GIVEN("a multiple node graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("a");
+        g.InsertNode("d");
+        g.InsertNode("c");
+        g.InsertNode("b");
+        WHEN("calling GetNodes") {
+            std::vector<std::string> res = g.GetNodes();
+            THEN("the correct vector is returned") {
+                std::vector<std::string> expected{"a", "b", "c", "d"};
+                CHECK(res == expected);
+            }
+        }
+    }
+}
+
 
 /*************************/
 /**  == GetConnected == **/
 /*************************/
 
+SCENARIO("Getting connected nodes of an isolated node of graph") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        g.InsertNode("x");
+        WHEN("calling GetConnected") {
+            std::vector<std::string> res = g.GetConnected("x");
+            THEN("the correct vector is returned") {
+                std::vector<std::string> expected;
+                CHECK(res == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Getting connected nodes of connected node in graph") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("calling GetConnected") {
+            std::vector<std::string> res = g.GetConnected("a");
+            THEN("the correct vector is returned") {
+                std::vector<std::string> expected{"b", "d"};
+                CHECK(res == expected);
+            }
+        }
+    }
+}
+
+SCENARIO("Getting connected nodes of a node with self edges") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("calling GetConnected") {
+            std::vector<std::string> res = g.GetConnected("b");
+            THEN("the correct vector is returned") {
+                std::vector<std::string> expected{"b", "c"};
+                CHECK(res == expected);
+            }
+        }
+    }
+}
+
 /***********************/
 /**  == GetWeights == **/
 /***********************/
 
+SCENARIO("Getting edges between unconnected nodes") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("calling GetConnected") {
+            std::vector<int> res = g.GetWeights("a", "c");
+            THEN("an empty vector is returned") {
+                std::vector<int> expected;
+                CHECK(res == expected);
+            }
+        }
+    }
+}
 
+SCENARIO("Getting edges between two different connected nodes") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("calling GetConnected") {
+            std::vector<int> res = g.GetWeights("a", "d");
+            THEN("an empty vector is returned") {
+                std::vector<int> expected {4,50};
+                CHECK(res == expected);
+            }
+        }
+    }
+}
 
+SCENARIO("Getting edges between a self connected node") {
+    GIVEN("a graph") {
+        gdwg::Graph<std::string, int> g;
+        g.InsertNode("c");
+        g.InsertNode("d");
+        g.InsertNode("b");
+        g.InsertNode("a");
+        g.InsertEdge("a", "b", 10);
+        g.InsertEdge("a", "b", 1);
+        g.InsertEdge("a", "d", 4);
+        g.InsertEdge("a", "d", 50);
+        g.InsertEdge("c", "b", 3);
+        g.InsertEdge("b", "b", 2);
+        g.InsertEdge("b", "b", 9);
+        g.InsertEdge("b", "b", 1);
+        g.InsertEdge("b", "b", 4);
+        g.InsertEdge("b", "c", 2);
+        g.InsertEdge("d", "b", 23);
+        g.InsertEdge("d", "d", 5);
+        WHEN("calling GetConnected") {
+            std::vector<int> res = g.GetWeights("b", "b");
+            THEN("an empty vector is returned") {
+                std::vector<int> expected{1,2,4,9};
+                CHECK(res == expected);
+            }
+        }
+    }
+}
 //SCENARIO("") {
 //    WHEN("") {
 //        gdwg::Graph<std::string, int> g;

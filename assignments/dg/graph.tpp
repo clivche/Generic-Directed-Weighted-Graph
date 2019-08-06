@@ -284,11 +284,10 @@ gdwg::Graph<N, E>::Graph(std::initializer_list<N> args) {
     }
 }
 
-
-
-
 /**
  * Copy Constructor
+ *
+ * @param g - graph being copied
  */
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>& g) {
@@ -308,6 +307,8 @@ gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>& g) {
 
 /**
  * Move Constructor
+ *
+ * @param g - graph being moved
  */
 template<typename N, typename E>
 gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>&& g) {
@@ -319,14 +320,16 @@ gdwg::Graph<N, E>::Graph(gdwg::Graph<N, E>&& g) {
  */
 template<typename N, typename E>
 gdwg::Graph<N, E>::~Graph() {
-//    for (auto& node : nodeList_) {
-//        delete node;
-//    }
-//    delete[] nodeList_;
+    for (auto node : nodeList_) {
+        delete node.get();
+    }
+    nodeList_.clear();
 }
 
 /**
  * A copy assignment operator overload
+ *
+ * @param g - graph being copy assigned
  */
 template<typename N, typename E>
 gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(const gdwg::Graph<N, E>& g) {
@@ -346,6 +349,8 @@ gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(const gdwg::Graph<N, E>& g) {
 
 /**
  * A move assignment operator overload
+ *
+ * @param g - graph being move assigned
  */
 template<typename N, typename E>
 gdwg::Graph<N, E> &gdwg::Graph<N, E>::operator=(gdwg::Graph<N, E>&& g) {
@@ -949,11 +954,11 @@ typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cend() const {
         auto child_lock = child.lock();
         children.push_back(child_lock->GetValue());
     }
-    std::map<N, std::vector<E>> edges = nodeList_.begin()->GetEdges();
+    std::map<N, std::vector<E>> edges = (*(nodeList_.begin()))->GetEdges();
     std::vector<E> last_weights = edges.rbegin()->second;
 
-    return {nodeList_.end(), nodeList_.end(), nodeList_.begin(), children
-    .end(), last_weights.end()};
+    return const_iterator(nodeList_.end(), nodeList_.end(), nodeList_.begin(),
+    children.end(), last_weights.end());
 //
 //    return {nodeList_.end(), nodeList_.end(), nodeList_.begin(), dummyN.end()
 //            , dummyE.end()};

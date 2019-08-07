@@ -762,6 +762,10 @@ gdwg::Graph<N, E>::erase(gdwg::Graph<N, E>::const_iterator it) {
  */
 template <typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator& gdwg::Graph<N, E>::const_iterator::operator++() {
+  std::cout << (*node_iter_)->GetValue() << " -> " << *edge_iter_ << " = " <<
+  *weight_iter_ << "\n";
+
+  std::cout << "incrementing weight!\n";
   ++weight_iter_;
 
   std::vector<N> children;
@@ -773,22 +777,34 @@ typename gdwg::Graph<N, E>::const_iterator& gdwg::Graph<N, E>::const_iterator::o
   std::vector<E> weights = edge_map[*edge_iter_];
 
   if (weight_iter_ == weights.end()) {
+//    std::cout << "incrementing edge!\n";
     ++edge_iter_;
     if (edge_iter_ == children.end()) {
       do {
+//        std::cout << "incrementing node!\n";
         ++node_iter_;
       } while (node_iter_ != node_sentinel_ && children.begin() == children.end());
 
       if (node_iter_ != node_sentinel_) {
+        children.clear();
+        for (const auto& child : (*node_iter_)->GetChildren()) {
+          auto child_lock = child.lock();
+          children.push_back(child_lock->GetValue());
+        }
         edge_iter_ = children.begin();
 
         std::map<N, std::vector<E>> edges = (*node_iter_)->GetEdges();
         weights = edges[*edge_iter_];
         weight_iter_ = weights.begin();
+
+      } else {
+        //TODO return cend()???
       }
     }
   }
 
+  std::cout << (*node_iter_)->GetValue() << " -> " << *edge_iter_ << " = " <<
+            *weight_iter_ << "\n";
   return *this;
 }
 
@@ -879,36 +895,35 @@ operator*() const {
 template <typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cbegin() const {
 
-// TODO @Vaish: for some reason this comparison fails with a nodeList_.size() > 0
-//  if (nodeList_.begin() == nodeList_.end()) {
-//      std::cout<< "begin == end\n";
-//  }
-//  else {
-//      std::cout<< "begin != end\n";
-//  }
+  if (nodeList_.size() == 0) {
+    return cend();
+  }
 
   auto it = nodeList_.begin();
 
-// find a node that has children
-//  while ((*it)->GetChildren().size() == 0) {
-//    ++it;
-//    if (it == nodeList_.end()) {
-//      return end();
-//    }
-//  }
+  // find a node that has children
+  while ((*it)->GetChildren().size() == 0) {
+    ++it;
+    if (it == nodeList_.end()) {
+      return cend();
+    }
+  }
 
-  std::vector<N> children {"a", "b", "c"};
-//  for (const auto& child : (*it)->GetChildren()) {
-//    auto child_lock = child.lock();
-//    children.push_back(child_lock->GetValue());
-//  }
-//  std::map<N, std::vector<E>> edges = (*it)->GetEdges();
-//  std::vector<E> weights = edges.begin()->second;
-    std::vector<E> weights{1,2,3,5};
-    //    return {first.begin(), first.end(), first.begin(), children.begin(), weights.begin()};
-  return {it, nodeList_.end(), nodeList_.begin(), children.begin(), weights.begin()};
+  std::vector<N> children;
+  for (const auto& child : (*it)->GetChildren()) {
+    auto child_lock = child.lock();
+    children.push_back(child_lock->GetValue());
+  }
+  std::map<N, std::vector<E>> edges = (*it)->GetEdges();
+  std::vector<E> weights = edges.begin()->second;
 
   // todo what happens when key maps to empty vector
+//  if (weights.size() == 0) {}
+
+  std::cout << (*it)->GetValue() << " -> " << *children.begin() << " = " <<
+            *weights.begin() << "\n";
+  return {it, nodeList_.end(), nodeList_.begin(), children.begin(), weights
+  .begin()};
 }
 
 /**
@@ -922,30 +937,29 @@ typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cbegin() const {
  */
 template <typename N, typename E>
 typename gdwg::Graph<N, E>::const_iterator gdwg::Graph<N, E>::cend() const {
-  if (nodeList_.size() == 0) {
-    // todo exit early
-  }
+//  if (nodeList_.size() == 0) {
+//    // todo exit early
+//  }
+//
+//  auto it = nodeList_.end();
+//
+//  // find a node that has children
+//  while ((*it)->GetChildren().size() == 0) {
+//    --it;
+//  }
+//
+//  std::vector<N> children;
+//  for (const auto& child : (*it)->GetChildren()) {
+//    auto child_lock = child.lock();
+//    children.push_back(child_lock->GetValue());
+//  }
+//  std::map<N, std::vector<E>> edges = (*(nodeList_.begin()))->GetEdges();
+//  std::vector<E> last_weights = edges.rbegin()->second;
+//
+//  return const_iterator(nodeList_.end(), nodeList_.end(), nodeList_.begin(), children.end(),
+//                        last_weights.end());
 
-  auto it = nodeList_.end();
-
-  // find a node that has children
-  while ((*it)->GetChildren().size() == 0) {
-    --it;
-  }
-
-  std::vector<N> children;
-  for (const auto& child : (*it)->GetChildren()) {
-    auto child_lock = child.lock();
-    children.push_back(child_lock->GetValue());
-  }
-  std::map<N, std::vector<E>> edges = (*(nodeList_.begin()))->GetEdges();
-  std::vector<E> last_weights = edges.rbegin()->second;
-
-  return const_iterator(nodeList_.end(), nodeList_.end(), nodeList_.begin(), children.end(),
-                        last_weights.end());
-  //
-  //    return {nodeList_.end(), nodeList_.end(), nodeList_.begin(), dummyN.end()
-  //            , dummyE.end()};
+  return {nodeList_.end(), nodeList_.end(), nodeList_.begin(), {}, {}};
 }
 
 // const_reverse_iterator

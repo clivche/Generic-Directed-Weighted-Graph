@@ -9,20 +9,32 @@
 int main() {
 //  const std::vector<std::string> v1 {"x", "y", "a", "p", "b"};
     gdwg::Graph<std::string, int> g;
-//    g.InsertNode("c");
-//    g.InsertNode("d");
-//    g.InsertNode("b");
-//    g.InsertNode("a");
-//    g.InsertEdge("a", "b", 10);
-//    g.InsertEdge("a", "b", 1);
-//    g.InsertEdge("a", "d", 4);
-//    g.InsertEdge("a", "d", 50);
+    g.InsertNode("c");
+    g.InsertNode("d");
+    g.InsertNode("b");
+    g.InsertNode("a");
+    g.InsertEdge("a", "b", 10);
+    g.InsertEdge("b", "c", 1);
+    g.InsertEdge("c", "d", 4);
+    g.InsertEdge("d", "d", 50);
+    std::cout << g << "\n\n";
+
+    auto it = g.cbegin();
+    ++it;
+    ++it;
+    ++it;
+
+//    while (it != g.cend()) {
+//        std::cout << "hello" << "\n";
+//        ++it;
+//    }
+
+
 //    g.InsertEdge("b", "b", 2);
 //    g.InsertEdge("c", "b", 3);
 //    g.InsertEdge("b", "c", 2);
 //    g.InsertEdge("d", "b", 23);
 //    g.InsertEdge("d", "d", 5);
-    g.cbegin();
 //        g.InsertNode("x");
 //        g.InsertNode("y");
 //        g.InsertNode("z");

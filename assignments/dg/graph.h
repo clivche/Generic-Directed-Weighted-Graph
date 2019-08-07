@@ -51,11 +51,14 @@ class Graph {
 
    private:
     friend class Graph;
-    typename std::vector<std::shared_ptr<Node>>::iterator node_iter_;
-    const typename std::vector<std::shared_ptr<Node>>::iterator node_sentinel_;
-    const typename std::vector<std::shared_ptr<Node>>::iterator reverse_sentinel_;
-    typename std::vector<N>::iterator edge_iter_;
-    typename std::vector<E>::iterator weight_iter_;
+    typename std::vector<std::shared_ptr<Node>>::const_reverse_iterator
+    node_iter_;
+    const typename std::vector<std::shared_ptr<Node>>::const_reverse_iterator
+    node_sentinel_;
+    const typename std::vector<std::shared_ptr<Node>>::const_reverse_iterator
+    reverse_sentinel_;
+    typename std::vector<N>::const_reverse_iterator edge_iter_;
+    typename std::vector<E>::const_reverse_iterator weight_iter_;
 
     const_reverse_iterator(const decltype(node_iter_)& node_iter,
                            const decltype(node_sentinel_)& node_sentinel,
